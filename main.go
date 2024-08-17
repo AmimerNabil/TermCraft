@@ -15,10 +15,8 @@ func main() {
 				"  Build: %s\n"+
 				"  Date: %s\n"+
 				"  Is LTS: %t\n"+
-				"  Path: %s\n"+
-				"  Vendor: %s\n",
-			info.Active, info.Version, info.Build, info.Date, info.IsLTS, info.Path, info.Vendor,
-		)
+				"  Path: %s\n",
+			info.Active, info.Version, info.Build, info.Date, info.IsLTS, info.Path)
 		fmt.Println(output)
 	}
 }

@@ -13,7 +13,6 @@ type LocalJavaInstallation struct {
 	Date    string
 	IsLTS   bool
 	Path    string
-	Vendor  string
 	Active  bool
 }
 
@@ -50,7 +49,7 @@ func GetLocalJavaVersions() []LocalJavaInstallation {
 		}
 
 		output := string(std)
-		var version LocalJavaInstallation = parseJavaVersion(output)
+		version := parseJavaVersion(output)
 		version.Path = v
 		version.Active = output == currVersion
 
@@ -90,10 +89,11 @@ func parseJavaVersion(output string) LocalJavaInstallation {
 			info.IsLTS = true
 		}
 
-		if strings.Contains(line, "Runtime Environment") {
-			parts := strings.Fields(line)
-			info.Vendor = strings.Join(parts[0:len(parts)-4], " ")
-		}
+		// TODO: make the vendor parsing work
+		// if strings.Contains(line, "Runtime Environment") {
+		// 	parts := strings.Fields(line)
+		// 	info.Vendor = strings.Join(parts[0:len(parts)-4], " ")
+		// }
 	}
 
 	return info
