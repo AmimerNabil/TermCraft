@@ -12,11 +12,8 @@ func main() {
 			"Java Version Info:\n"+
 				"  Active: %v\n"+
 				"  Version: %s\n"+
-				"  Build: %s\n"+
-				"  Date: %s\n"+
-				"  Is LTS: %t\n"+
-				"  Path: %s\n",
-			info.Active, info.Version, info.Build, info.Date, info.IsLTS, info.Path)
+				"  Date: %s\n",
+			info.CurrentlyActive, info.JavaVersion, info.JavaVersionDate)
 		fmt.Println(output)
 	}
 }
