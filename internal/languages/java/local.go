@@ -2,8 +2,8 @@ package java
 
 import (
 	"TermCraft/internal/term/commands"
+	"fmt"
 	"log"
-	"os/exec"
 	"runtime"
 	"strings"
 )
@@ -42,7 +42,8 @@ func GetLocalJavaVersions() []JavaProperties {
 		}
 		_, output, err := command.Run()
 		if err != nil {
-			log.Panicln(err)
+			fmt.Println(err)
+			continue
 		}
 
 		version := parseProperties(output)
@@ -54,18 +55,21 @@ func GetLocalJavaVersions() []JavaProperties {
 }
 
 func GetLocalJavaExecutables() ([]string, error) {
-	var cmd *exec.Cmd
 	commandToRun, ok := findCommands[runtime.GOOS]
 	if !ok {
 		log.Panic("unsupported OS")
 	}
-	cmd = exec.Command(commandToRun[0], commandToRun[1:]...)
-	std, err := cmd.Output()
-	if err != nil {
-		return nil, err
+
+	command := commands.TerminalCommand{
+		Command: commandToRun[0],
+		Args:    commandToRun[1:],
 	}
 
-	javaLocations := strings.Split(string(std), "\n")
+	stdOut, _, error := command.Run()
+	if error != nil {
+		return nil, error
+	}
+	javaLocations := strings.Split(stdOut, "\n")
 	var finalLocations []string
 
 	for _, v := range javaLocations {

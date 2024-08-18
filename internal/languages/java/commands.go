@@ -4,14 +4,10 @@ import "runtime"
 
 var findCommands = map[string][]string{
 	"darwin": {
-		"find", "/usr", "/home", "/Library", "/opt",
+		"find", "/usr", "/home", "/opt",
 		"-path", "/usr/sbin/authserver", "-prune", "-o",
-		"-path", "/Library/Caches", "-prune", "-o",
-		"-path", "/Library/Trial", "-prune", "-o",
-		"-path", "/Library/Application Support", "-prune", "-o",
 		"-type", "f", "-perm", "+111",
-		"-name", "java", "-o",
-		"-name", "binjava",
+		"-name", "java",
 		"-print",
 	},
 	"linux": {
