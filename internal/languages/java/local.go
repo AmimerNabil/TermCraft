@@ -2,7 +2,6 @@ package java
 
 import (
 	"TermCraft/internal/term/commands"
-	"fmt"
 	"log"
 	"runtime"
 	"strings"
@@ -42,7 +41,7 @@ func GetLocalJavaVersions() []JavaProperties {
 		}
 		_, output, err := command.Run()
 		if err != nil {
-			fmt.Println(err)
+			// TODO: do something here fmt.Println(err)
 			continue
 		}
 

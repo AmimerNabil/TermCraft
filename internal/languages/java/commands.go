@@ -30,7 +30,7 @@ var versionCommand = map[string][]string{
 // $ curl -s "https://get.sdkman.io" | bash
 var sdkmanInstall = map[string][]string{
 	"darwin": {
-		"curl", "-s", "https://get.sdkman.io", "|", "bash",
+		"curl", "-s", "https://get.sdkman.io",
 	},
 	"linux": {
 		"curl", "-s", "https://get.sdkman.io",

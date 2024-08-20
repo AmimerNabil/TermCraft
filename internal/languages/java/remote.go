@@ -17,7 +17,7 @@ func InstallSdkMan() (string, error) {
 
 	script, _, err := command.Run() // what I get here is the sdkman script
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("problem fetching script", err)
 		return "", err
 	}
 
@@ -30,7 +30,7 @@ func InstallSdkMan() (string, error) {
 
 	_, _, errr := command.Run()
 	if errr != nil {
-		fmt.Println(errr)
+		fmt.Println("problem exec script", errr)
 		return "", errr
 	}
 
