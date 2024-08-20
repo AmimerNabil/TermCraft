@@ -1,19 +1,28 @@
 package main
 
 import (
+	"TermCraft/configs"
 	"TermCraft/internal/languages/java"
-	"fmt"
+	"log"
+	"runtime"
+	"slices"
+
+	"github.com/rivo/tview"
 )
 
+var App tview.Application
+
 func main() {
-	versions := java.GetLocalJavaVersions()
-	for _, info := range versions {
-		output := fmt.Sprintf(
-			"Java Version Info:\n"+
-				"  Active: %v\n"+
-				"  Version: %s\n"+
-				"  Date: %s\n",
-			info.CurrentlyActive, info.JavaVersion, info.JavaVersionDate)
-		fmt.Println(output)
+	if !slices.Contains(configs.SupportedOS, runtime.GOOS) {
+		log.Panic("Unsupported OS...")
 	}
+
+	java.InstallSdkMan()
+
+	// App = *tview.NewApplication()
+	// ui.Start(&App)
+	//
+	// if err := App.Run(); err != nil {
+	// 	panic(err)
+	// }
 }

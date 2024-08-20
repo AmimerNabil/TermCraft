@@ -27,7 +27,28 @@ var versionCommand = map[string][]string{
 	},
 }
 
+// $ curl -s "https://get.sdkman.io" | bash
+var sdkmanInstall = map[string][]string{
+	"darwin": {
+		"curl", "-s", "https://get.sdkman.io", "|", "bash",
+	},
+	"linux": {
+		"curl", "-s", "https://get.sdkman.io",
+	},
+}
+
+var sdkmanVersion = map[string][]string{
+	"darwin": {
+		"sdk", "version",
+	},
+	"linux": {
+		"sdk", "version",
+	},
+}
+
 var (
 	OSversionCommand = versionCommand[runtime.GOOS]
 	OSfindCommand    = findCommands[runtime.GOOS]
+	OSsdkmanVersion  = sdkmanVersion[runtime.GOOS]
+	OSsdkInstall     = sdkmanInstall[runtime.GOOS]
 )
