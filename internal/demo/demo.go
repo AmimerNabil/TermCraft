@@ -5,6 +5,17 @@ import (
 	"fmt"
 )
 
+func DemoGetJavaVersionsRemote() {
+	rv, err := java.GetRemoteVersions()
+	if err != nil {
+	}
+
+	for _, java := range rv {
+		fmt.Printf("Vendor: %s, Version: %s, Identifier: %s, Installed: %t\n",
+			java.JavaVendor, java.JavaVersion, java.Identifier, java.Installed)
+	}
+}
+
 func DemoGetJavaVersionsLocally() {
 	versions := java.GetLocalJavaVersions()
 	for _, info := range versions {

@@ -50,3 +50,10 @@ type JavaProperties struct {
 	UserName                   string `json:"user.name"`
 	CurrentlyActive            bool   `json:"java.active"`
 }
+
+type RemoteJavaProperties struct {
+	JavaVendor  string `json:"java.vendor"`
+	JavaVersion string `json:"java.version"`
+	Identifier  string `json:"java.remote.identifier"`
+	Installed   bool   `json:"java.installed"`
+}

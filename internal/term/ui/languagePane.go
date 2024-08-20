@@ -8,9 +8,9 @@ import (
 )
 
 type LanguagePane struct {
+	list      *tview.List
 	title     string
 	languages []string
-	list      *tview.List
 }
 
 var langPane2 LanguagePane = LanguagePane{

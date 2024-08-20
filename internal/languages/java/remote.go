@@ -7,6 +7,8 @@ import (
 	"TermCraft/internal/term/commands"
 	"fmt"
 	"os"
+	"regexp"
+	"strings"
 )
 
 func InstallSdkMan() (string, error) {
@@ -34,10 +36,29 @@ func InstallSdkMan() (string, error) {
 		return "", errr
 	}
 
-	return "", nil
+	return "successfully Installed", nil
 }
 
-func isSDKMANInstalled() bool {
+func GetRemoteVersions() ([]RemoteJavaProperties, error) {
+	var rv []RemoteJavaProperties
+
+	command := commands.TerminalCommand{
+		Command: OSsdkListJava[0],
+		Args:    OSsdkListJava[1:],
+	}
+
+	versionsSTDO, _, err := command.Run()
+	if err != nil {
+		fmt.Println("problem fetching versions", err)
+		return nil, err
+	}
+
+	parseJavaOutput(versionsSTDO, &rv)
+
+	return rv, nil
+}
+
+func IsSDKMANInstalled() bool {
 	// Check for the SDKMAN directory
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
@@ -51,7 +72,6 @@ func isSDKMANInstalled() bool {
 	}
 
 	// Check if the `sdk` command is available
-
 	command := commands.TerminalCommand{
 		Command: OSsdkmanVersion[0],
 		Args:    OSsdkmanVersion[1:],
@@ -59,4 +79,40 @@ func isSDKMANInstalled() bool {
 
 	_, _, error := command.Run()
 	return error == nil
+}
+
+func parseJavaOutput(output string, rv *[]RemoteJavaProperties) {
+	lines := strings.Split(output, "\n")
+	var currentVendor string
+
+	// Regular expression to match Java version lines with or without vendor
+	re := regexp.MustCompile(`^\s*([A-Za-z]+)?\s*\|\s*(>>>)?\s*\|\s+(\S+)\s+\|\s+(\S+)\s+\|\s*(installed|local only|)\s*\|\s+(\S+)`)
+
+	for _, line := range lines {
+		matches := re.FindStringSubmatch(line)
+		if matches != nil {
+			vendor := matches[1]
+			if vendor == "" {
+				vendor = currentVendor
+			} else {
+				currentVendor = vendor
+			}
+
+			version := matches[3]
+			status := matches[5]
+			identifier := matches[6]
+
+			// Determine if the version is installed
+			installed := matches[2] == ">>>" || status == "installed" || status == "local only"
+
+			javaProperties := RemoteJavaProperties{
+				JavaVendor:  vendor,
+				JavaVersion: version,
+				Identifier:  identifier,
+				Installed:   installed,
+			}
+
+			*rv = append(*rv, javaProperties)
+		}
+	}
 }
