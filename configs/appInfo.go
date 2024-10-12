@@ -1,8 +1,9 @@
 package configs
 
 var (
-	AppName string = "TermCraft"
-	AppLogo string = `
+	AppName    string = "TermCraft"
+	AppVersion string = "0.0.1"
+	AppLogo    string = `
  ____  ____  ____  _  _   ___  ____   __   ____  ____
 (_  _)(  __)(  _ \( \/ ) / __)(  _ \ / _\ (  __)(_  _)
   )(   ) _)  )   // \/ \( (__  )   //    \ ) _)   )(  

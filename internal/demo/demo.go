@@ -5,11 +5,10 @@ import (
 	"fmt"
 )
 
-func DemoGetJavaVersionsRemote() {
-	rv, err := java.GetRemoteVersions()
-	if err != nil {
-	}
+var jlp = java.JavaLangPack{}
 
+func DemoGetJavaVersionsRemote() {
+	rv := jlp.GetRemoteVersions()
 	for _, java := range rv {
 		fmt.Printf("Vendor: %s, Version: %s, Identifier: %s, Installed: %t\n",
 			java.JavaVendor, java.JavaVersion, java.Identifier, java.Installed)
@@ -17,7 +16,7 @@ func DemoGetJavaVersionsRemote() {
 }
 
 func DemoGetJavaVersionsLocally() {
-	versions := java.GetLocalJavaVersions()
+	versions := jlp.GetLocalVersions()
 	for _, info := range versions {
 		output := fmt.Sprintf(
 			"Java Version Info:\n"+

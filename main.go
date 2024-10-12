@@ -2,7 +2,7 @@ package main
 
 import (
 	"TermCraft/configs"
-	"TermCraft/internal/demo"
+	"TermCraft/internal/term/ui"
 	"log"
 	"runtime"
 	"slices"
@@ -17,13 +17,10 @@ func main() {
 		log.Panic("Unsupported OS...")
 	}
 
-	demo.DemoGetJavaVersionsRemote()
+	App = *tview.NewApplication()
+	ui.Start(&App)
 
-	// fmt.Println(java.IsSDKMANInstalled())
-	// App = *tview.NewApplication()
-	// ui.Start(&App)
-	//
-	// if err := App.Run(); err != nil {
-	// 	panic(err)
-	// }
+	if err := App.Run(); err != nil {
+		panic(err)
+	}
 }

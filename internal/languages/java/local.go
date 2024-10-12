@@ -7,27 +7,14 @@ import (
 	"strings"
 )
 
-func GetLocalRunningJava() (string, error) {
-	command := commands.TerminalCommand{
-		Command: OSversionCommand[0], Args: OSversionCommand[1:],
-	}
-
-	_, errOut, err := command.Run()
-	if err != nil {
-		log.Panicln(err)
-	}
-
-	return errOut, nil
-}
-
-func GetLocalJavaVersions() []JavaProperties {
+func getLocalJavaVersions() []JavaProperties {
 	// get executables of java in computer
-	executables, err := GetLocalJavaExecutables()
+	executables, err := getLocalJavaExecutables()
 	if err != nil {
 		log.Panicln(err)
 	}
 
-	currVersion, err := GetLocalRunningJava()
+	currVersion, err := getLocalRunningJava()
 	if err != nil {
 		log.Panicln(err)
 	}
@@ -53,7 +40,20 @@ func GetLocalJavaVersions() []JavaProperties {
 	return versions
 }
 
-func GetLocalJavaExecutables() ([]string, error) {
+func getLocalRunningJava() (string, error) {
+	command := commands.TerminalCommand{
+		Command: OSversionCommand[0], Args: OSversionCommand[1:],
+	}
+
+	_, errOut, err := command.Run()
+	if err != nil {
+		log.Panicln(err)
+	}
+
+	return errOut, nil
+}
+
+func getLocalJavaExecutables() ([]string, error) {
 	commandToRun, ok := findCommands[runtime.GOOS]
 	if !ok {
 		log.Panic("unsupported OS")
