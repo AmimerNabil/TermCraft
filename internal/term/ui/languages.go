@@ -3,6 +3,7 @@ package ui
 import (
 	"TermCraft/internal/languages"
 
+	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
@@ -30,7 +31,14 @@ func (list *AvailableLanguagesList) Init() {
 	list.El.SetBorder(true)
 	list.El.SetTitle("languages")
 
-	addKeyFunc(list.El, '[', func() {
-		App.SetFocus(systemInfoSection.El)
+	list.El.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		switch event.Key() {
+		case tcell.KeyRune:
+			switch event.Rune() {
+			case '[':
+				App.SetFocus(systemInfoSection.El)
+			}
+		}
+		return event
 	})
 }

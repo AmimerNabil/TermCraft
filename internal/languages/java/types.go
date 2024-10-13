@@ -7,13 +7,11 @@ type JavaLangPack struct {
 }
 
 func (jp *JavaLangPack) GetLocalVersions() []JavaProperties {
-	jp.localVersions = getLocalJavaVersions()
-	return jp.localVersions
+	return getLocalJavaVersions()
 }
 
 func (jp *JavaLangPack) GetRemoteVersions() []RemoteJavaProperties {
-	jp.remoteVersions = getRemoteVersions()
-	return jp.remoteVersions
+	return getRemoteVersions()
 }
 
 type JavaProperties struct {
@@ -21,19 +19,19 @@ type JavaProperties struct {
 	FileSeparator              string `json:"file.separator"`
 	JavaClassPath              string `json:"java.class.path"`
 	JavaClassVersion           string `json:"java.class.version"`
-	JavaHome                   string `json:"java.home"`
+	JavaHome                   string `json:"java.home" table:""`
 	JavaIOTmpDir               string `json:"java.io.tmpdir"`
 	JavaLibraryPath            string `json:"java.library.path"`
-	JavaRuntimeName            string `json:"java.runtime.name"`
+	JavaRuntimeName            string `json:"java.runtime.name" table:""`
 	JavaRuntimeVersion         string `json:"java.runtime.version"`
 	JavaSpecificationName      string `json:"java.specification.name"`
 	JavaSpecificationVendor    string `json:"java.specification.vendor"`
 	JavaSpecificationVersion   string `json:"java.specification.version"`
-	JavaVendor                 string `json:"java.vendor"`
+	JavaVendor                 string `json:"java.vendor" table:""`
 	JavaVendorURL              string `json:"java.vendor.url"`
 	JavaVendorURLBug           string `json:"java.vendor.url.bug"`
 	JavaVendorVersion          string `json:"java.vendor.version"`
-	JavaVersion                string `json:"java.version"`
+	JavaVersion                string `json:"java.version" table:""`
 	JavaVersionDate            string `json:"java.version.date"`
 	JavaVMCompressedOopsMode   string `json:"java.vm.compressedOopsMode"`
 	JavaVMInfo                 string `json:"java.vm.info"`

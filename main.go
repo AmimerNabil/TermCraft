@@ -1,11 +1,7 @@
 package main
 
 import (
-	"TermCraft/configs"
-	"TermCraft/internal/term/ui"
-	"log"
-	"runtime"
-	"slices"
+	"TermCraft/internal/demo"
 
 	"github.com/rivo/tview"
 )
@@ -13,14 +9,18 @@ import (
 var App tview.Application
 
 func main() {
-	if !slices.Contains(configs.SupportedOS, runtime.GOOS) {
-		log.Panic("Unsupported OS...")
-	}
+	// if !slices.Contains(configs.SupportedOS, runtime.GOOS) {
+	// 	log.Panic("Unsupported OS...")
+	// }
+	//
+	// App = *tview.NewApplication()
+	// ui.Start(&App)
+	//
+	// if err := App.Run(); err != nil {
+	// 	panic(err)
+	// }
 
-	App = *tview.NewApplication()
-	ui.Start(&App)
+	// List of common Python executable names
 
-	if err := App.Run(); err != nil {
-		panic(err)
-	}
+	demo.DemoGetAvailablePythonVersionsToInstall()
 }

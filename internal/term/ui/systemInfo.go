@@ -5,6 +5,7 @@ import (
 	"os"
 	"runtime"
 
+	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
@@ -28,7 +29,18 @@ func (si *SystemInfoComponent) Init() {
 	si.El.SetTitle("System Info")
 	si.El.SetBorder(true)
 
-	addKeyFunc(si.El, ']', func() {
-		App.SetFocus(availableLanguesSections.El)
+	si.El.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		switch event.Key() {
+		case tcell.KeyDown, tcell.KeyUp, tcell.KeyLeft, tcell.KeyRight:
+			return nil
+		case tcell.KeyRune:
+			switch event.Rune() {
+			case 'j', 'l', 'h', 'k':
+				return nil
+			case ']':
+				App.SetFocus(availableLanguesSections.El)
+			}
+		}
+		return event
 	})
 }
