@@ -62,7 +62,7 @@ func (jp *JavaPanel) createJavaListView() *tview.Flex {
 		var inUse string
 
 		if java.InUse {
-			inUse = " -> using"
+			inUse = "-> using"
 			indexInUse = i
 		} else {
 			inUse = ""
@@ -89,10 +89,11 @@ func (jp *JavaPanel) createJavaListView() *tview.Flex {
 	list.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		index := list.GetCurrentItem()
 		var text string
-		if index >= 0 {
+		if len(javas) > 0 && index >= 0 {
 			itemText, _ := list.GetItemText(index)
 			text = itemText
 		}
+
 		switch event.Key() {
 		case tcell.KeyEnter:
 			jp.UseVersion(getVersionFromID(text), index, list)
@@ -344,7 +345,7 @@ func (jp *JavaPanel) UseVersion(identifier string, index int, list *tview.List) 
 			select {
 			case <-done:
 
-				temp := fmt.Sprintf("%s -> using ", originalText)
+				temp := fmt.Sprintf("%s-> using ", originalText)
 				var newOld string
 				newOld = strings.ReplaceAll(inUseText, "-> using", "")
 
