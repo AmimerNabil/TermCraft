@@ -16,9 +16,10 @@ type JavaPanel struct {
 
 // java pannel elements
 var (
-	Civ *tview.Flex
-	Liv *tview.Flex
-	Rvs *tview.Flex
+	Civ          *tview.Flex
+	Liv          *tview.Flex
+	Rvs          *tview.Flex
+	confirmation *tview.Flex
 )
 
 var (
@@ -35,11 +36,10 @@ func (jp *JavaPanel) Init(app *tview.Application, outFocus *tview.List) *tview.G
 	Rvs = CreateJavaTreeView()
 
 	jp.El = tview.NewGrid()
-	// jp.El.SetTitle("Java Language Information").SetBorder(true)
 
 	// first sow at the very top, the
 	jp.El.SetRows(14, 0)
-	jp.El.SetColumns(40, 0)
+	jp.El.SetColumns(-1, -1)
 
 	jp.El.AddItem(Civ, 0, 0, 1, 2, 0, 0, false)
 	jp.El.AddItem(Liv, 1, 0, 1, 1, 0, 0, false)
@@ -111,41 +111,40 @@ func currentlyInstalledVersion() *tview.Flex {
 	// Set the formatted content to the TextView
 	textView.SetText(strings.Join(content, "\n"), false)
 
-	// Create a Flex layout to wrap the TextView and add some padding
-	flex := tview.NewFlex().
-		AddItem(nil, 5, 1, false). // Add 2-unit padding to the left
-		AddItem(textView, 0, 1, true).
-		AddItem(nil, 5, 1, false) // Add 2-unit padding to the right
-
 	flexV := tview.NewFlex().SetDirection(tview.FlexRow).
 		AddItem(nil, 1, 1, false). // Add 2-unit padding to the left
-		AddItem(flex, 0, 1, true).
+		AddItem(textView, 0, 1, true).
 		AddItem(nil, 1, 1, false) // Add 2-unit padding to the right
 
-	flexV.SetBorder(true).SetTitle("Currently Used").SetTitleColor(tview.Styles.TertiaryTextColor)
+	flex := tview.NewFlex().
+		AddItem(nil, 5, 1, false). // Add 2-unit padding to the left
+		AddItem(flexV, 0, 1, true).
+		AddItem(nil, 5, 1, false) // Add 2-unit padding to the right
 
-	return flexV
+	flex.SetBorder(true).SetTitle("Currently Used").SetTitleColor(tview.Styles.TertiaryTextColor)
+
+	return flex
 }
 
 func CreateJavaTreeView() *tview.Flex {
 	javas := java.GetRemoteVersions()
 
 	rootNode := tview.NewTreeNode("Java Versions")
-	vendorMap := make(map[string]map[string][]string)
+	vendorMap := make(map[string]map[string][]java.RemoteJavaProperties)
 
-	for _, java := range javas {
-		versionParts := strings.Split(java.JavaVersion, ".")
+	for _, j := range javas {
+		versionParts := strings.Split(j.JavaVersion, ".")
 		if len(versionParts) < 2 {
 			continue
 		}
 
 		majorMinor := fmt.Sprintf("%s.%s", versionParts[0], versionParts[1])
 
-		if _, ok := vendorMap[java.JavaVendor]; !ok {
-			vendorMap[java.JavaVendor] = make(map[string][]string)
+		if _, ok := vendorMap[j.JavaVendor]; !ok {
+			vendorMap[j.JavaVendor] = make(map[string][]java.RemoteJavaProperties)
 		}
 
-		vendorMap[java.JavaVendor][majorMinor] = append(vendorMap[java.JavaVendor][majorMinor], java.JavaVersion)
+		vendorMap[j.JavaVendor][majorMinor] = append(vendorMap[j.JavaVendor][majorMinor], j)
 	}
 
 	// Sort vendor keys alphabetically
@@ -161,9 +160,11 @@ func CreateJavaTreeView() *tview.Flex {
 		// Sort majorMinor keys alphabetically
 		majorMinorVersions := vendorMap[vendor]
 		majorMinorKeys := make([]string, 0, len(majorMinorVersions))
+
 		for majorMinor := range majorMinorVersions {
 			majorMinorKeys = append(majorMinorKeys, majorMinor)
 		}
+
 		sort.Strings(majorMinorKeys)
 
 		for _, majorMinor := range majorMinorKeys {
@@ -171,10 +172,60 @@ func CreateJavaTreeView() *tview.Flex {
 
 			// Sort versions alphabetically
 			versions := majorMinorVersions[majorMinor]
-			sort.Strings(versions)
+			// sort.Strings(versions)
 
 			for _, version := range versions {
-				versionNode := tview.NewTreeNode(version).SetColor(tview.Styles.PrimaryTextColor)
+				var installed string
+				if version.Installed {
+					installed = "*"
+				} else {
+					installed = ""
+				}
+
+				versionNode := tview.NewTreeNode(version.JavaVersion + " " + installed).SetColor(tview.Styles.PrimaryTextColor)
+				versionNode.SetSelectedFunc(func() {
+					// ask for confirmation
+					confirmation = tview.NewFlex().SetDirection(tview.FlexColumnCSS)
+					currFocus := '2'
+					b1 := tview.NewButton("Yes").SetSelectedFunc(func() {
+						// handle install
+					})
+					b2 := tview.NewButton("No").SetSelectedFunc(func() {
+						Civ.RemoveItem(confirmation)
+						App.SetFocus(Rvs)
+					})
+
+					confirmation.
+						AddItem(nil, 4, 1, false).
+						AddItem(
+							tview.NewTextArea().
+								SetText("Are you sure you want to Install: "+version.Identifier, false),
+							0, 3, false).
+						AddItem(
+							tview.NewFlex().SetDirection(tview.FlexRowCSS).
+								AddItem(b1, 0, 1, false).
+								AddItem(nil, 4, 3, false).
+								AddItem(b2, 0, 1, true),
+							0, 2, true)
+
+					confirmation.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+						switch event.Key() {
+						case tcell.KeyTab:
+							if currFocus == '1' {
+								App.SetFocus(b2)
+								currFocus = '2'
+							} else {
+								App.SetFocus(b1)
+								currFocus = '1'
+							}
+						}
+						return event
+					})
+
+					Civ.AddItem(confirmation, 0, 1, false)
+
+					App.SetFocus(confirmation)
+				})
 				majorMinorNode.AddChild(versionNode)
 			}
 
@@ -198,6 +249,7 @@ func CreateJavaTreeView() *tview.Flex {
 		AddItem(nil, 1, 1, false). // Add 2-unit padding to the left
 		AddItem(treeView, 0, 1, true).
 		AddItem(nil, 1, 1, false) // Add 2-unit padding to the right
+
 	flex.SetTitle("Versions Available for download").SetBorder(true).SetTitleColor(tview.Styles.TertiaryTextColor)
 
 	treeView.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {

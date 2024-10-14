@@ -40,7 +40,7 @@ func Start(app *tview.Application) {
 			6,
 			0,
 		).
-		SetColumns(40, 0)
+		SetColumns(30, 0)
 
 		// add the items on the UI
 	addItem(mainGrid, systemInfoSection.El, systemInformationPositions, false)
