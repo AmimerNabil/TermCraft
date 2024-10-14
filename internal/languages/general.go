@@ -15,3 +15,5 @@ var SupportedLanguages []string = []string{
 	"c/c++",
 	"kotlin",
 }
+
+var defaultLang = "java"

@@ -1,19 +1,5 @@
 package java
 
-// JavaProperties holds the key Java system properties
-type JavaLangPack struct {
-	localVersions  []JavaProperties
-	remoteVersions []RemoteJavaProperties
-}
-
-func (jp *JavaLangPack) GetLocalVersions() []JavaProperties {
-	return getLocalJavaVersions()
-}
-
-func (jp *JavaLangPack) GetRemoteVersions() []RemoteJavaProperties {
-	return getRemoteVersions()
-}
-
 type JavaProperties struct {
 	FileEncoding               string `json:"file.encoding"`
 	FileSeparator              string `json:"file.separator"`

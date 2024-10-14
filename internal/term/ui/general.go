@@ -1,23 +1,28 @@
 package ui
 
 import (
-	"github.com/gdamore/tcell/v2"
+	"TermCraft/internal/term/ui/javaui"
+	"TermCraft/internal/term/ui/pythonui"
+
 	"github.com/rivo/tview"
 )
 
 var (
+	// main
 	systemInfoSection        SystemInfoComponent
-	availableLanguesSections AvailableLanguagesList
-	languageInfoSection      LanguageInfo
+	AvailableLanguesSections AvailableLanguagesList
+	mainContainer            *tview.Pages
+
+	// language specific
+	jp javaui.JavaPanel
+	pp pythonui.PythonPanel
+
+	// config specific
+	// todo
+
 )
 
 var (
 	systemInformationPositions  = [7]int{0, 0, 1, 1, 0, 0}
 	availableLanguagesPositions = [7]int{1, 0, 1, 1, 0, 0}
-	languageInfoPositions       = [7]int{0, 1, 2, 1, 0, 0}
 )
-
-// Define an interface for elements that have SetInputCapture method
-type InputCapturable interface {
-	SetInputCapture(capture func(event *tcell.EventKey) *tcell.EventKey) *tview.Box
-}

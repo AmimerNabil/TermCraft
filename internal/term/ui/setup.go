@@ -1,8 +1,6 @@
 package ui
 
 import (
-	"TermCraft/internal/languages/java"
-
 	"github.com/rivo/tview"
 )
 
@@ -22,45 +20,37 @@ func addItem(root *tview.Grid, el tview.Primitive, positions [7]int, focus bool)
 func Start(app *tview.Application) {
 	App = app
 
-	// Example JavaProperties object
-	javaProps := []java.JavaProperties{
-		{
-			JavaVendor:      "Oracle Corporation",
-			JavaVersion:     "1.8.0_292",
-			JavaHome:        "/usr/lib/jvm/java-8-oracle",
-			JavaRuntimeName: "Java(TM) SE Runtime Environment",
-		},
-		{
-			JavaVendor:      "Oracle Corporation",
-			JavaVersion:     "1.8.0_292",
-			JavaHome:        "/usr/lib/jvm/java-8-oracle",
-			JavaRuntimeName: "Java(TM) SE Runtime Environment",
-		},
-		{
-			JavaVendor:      "Oracle Corporation",
-			JavaVersion:     "1.8.0_292",
-			JavaHome:        "/usr/lib/jvm/java-8-oracle",
-			JavaRuntimeName: "Java(TM) SE Runtime Environment",
-		},
-	}
-
 	// initiate sections
 	systemInfoSection.Init()
-	availableLanguesSections.Init()
-	languageInfoSection.init(convertToInterfaces(javaProps))
+	AvailableLanguesSections.Init()
+
+	jp.Init(App, AvailableLanguesSections.El)
+	pp.Init()
+
+	mainContainer = tview.NewPages()
+	// mainContainer.SetTitle("MainContainer").SetTitleAlign(tview.AlignCenter).SetBorder(true)
+
+	// set the different NewPages
+	mainContainer.AddPage("java", jp.El, true, true)
+	mainContainer.AddPage("python", pp.El, true, false)
 
 	// set columns for sections
 	mainGrid := tview.NewGrid().
 		SetRows(
 			6,
-			availableLanguesSections.Height,
+			0,
 		).
 		SetColumns(40, 0)
 
 		// add the items on the UI
-	addItem(mainGrid, systemInfoSection.El, systemInformationPositions, true)
-	addItem(mainGrid, availableLanguesSections.El, availableLanguagesPositions, false)
-	addItem(mainGrid, languageInfoSection.El, languageInfoPositions, false)
+	addItem(mainGrid, systemInfoSection.El, systemInformationPositions, false)
+	addItem(mainGrid, AvailableLanguesSections.El, availableLanguagesPositions, true)
 
-	App.SetRoot(mainGrid, true)
+	addItem(mainGrid, mainContainer, [7]int{
+		0, 1, 2, 1, 0, 0,
+	}, false)
+
+	frame := tview.NewFrame(mainGrid)
+
+	App.SetRoot(frame, true)
 }

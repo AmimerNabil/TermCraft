@@ -2,83 +2,155 @@ package java
 
 import (
 	"TermCraft/internal/term/commands"
+	"fmt"
 	"log"
-	"runtime"
+	"os"
+	"regexp"
 	"strings"
 )
 
-func getLocalJavaVersions() []JavaProperties {
-	// get executables of java in computer
-	executables, err := getLocalJavaExecutables()
-	if err != nil {
-		log.Panicln(err)
-	}
-
-	currVersion, err := getLocalRunningJava()
-	if err != nil {
-		log.Panicln(err)
-	}
-
-	var versions []JavaProperties
-
-	for _, v := range executables {
-
-		command := commands.TerminalCommand{
-			Command: v, Args: OSversionCommand[1:],
-		}
-		_, output, err := command.Run()
-		if err != nil {
-			// TODO: do something here fmt.Println(err)
-			continue
-		}
-
-		version := parseProperties(output)
-		version.CurrentlyActive = currVersion == output
-		versions = append(versions, version)
-	}
-
-	return versions
-}
-
-func getLocalRunningJava() (string, error) {
-	command := commands.TerminalCommand{
-		Command: OSversionCommand[0], Args: OSversionCommand[1:],
-	}
-
-	_, errOut, err := command.Run()
-	if err != nil {
-		log.Panicln(err)
-	}
-
-	return errOut, nil
-}
-
-func getLocalJavaExecutables() ([]string, error) {
-	commandToRun, ok := findCommands[runtime.GOOS]
-	if !ok {
-		log.Panic("unsupported OS")
+// public
+func GetAllJavaVersionInformation(identifier string) JavaProperties {
+	var pathToExec string
+	if identifier == "java" {
+		pathToExec = "java"
+	} else {
+		pathToExec = "/home/izelhl/.sdkman/candidates/java" + identifier + "/bin/java"
 	}
 
 	command := commands.TerminalCommand{
-		Command: commandToRun[0],
-		Args:    commandToRun[1:],
+		Command: pathToExec, Args: OSversionCommand[1:],
 	}
 
-	stdOut, _, error := command.Run()
-	if error != nil {
-		return nil, error
-	}
-	javaLocations := strings.Split(stdOut, "\n")
-	var finalLocations []string
+	_, output, _ := command.Run()
 
-	for _, v := range javaLocations {
-		trimmed := strings.TrimSpace(v)
-		if trimmed != "" && strings.Contains(trimmed, "bin/java") {
-			finalLocations = append(finalLocations, trimmed)
+	// if err != nil {
+	// 	// TODO: do something here fmt.Println(err)
+	// }
+
+	version := parseProperties(output)
+
+	return version
+}
+
+func IsSDKMANInstalled() bool {
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Println("Error getting user home directory:", err)
+		return false
+	}
+
+	sdkmanDir := homeDir + "/.sdkman"
+	if _, err := os.Stat(sdkmanDir); !os.IsNotExist(err) {
+		return true
+	}
+
+	command := commands.TerminalCommand{
+		Command: OSsdkmanVersion[0],
+		Args:    OSsdkmanVersion[1:],
+	}
+
+	_, _, error := command.Run()
+	return error == nil
+}
+
+func InstallSdkMan() (string, error) {
+	command := commands.TerminalCommand{
+		Command: OSsdkInstall[0],
+		Args:    OSsdkInstall[1:],
+	}
+
+	script, _, err := command.Run() // what I get here is the sdkman script
+	if err != nil {
+		fmt.Println("problem fetching script", err)
+		return "", err
+	}
+
+	command = commands.TerminalCommand{
+		Command: "bash",
+		Args: []string{
+			"-c", script,
+		},
+	}
+
+	_, _, errr := command.Run()
+	if errr != nil {
+		fmt.Println("problem exec script", errr)
+		return "", errr
+	}
+
+	return "successfully Installed", nil
+}
+
+func GetRemoteVersions() []RemoteJavaProperties {
+	var rv []RemoteJavaProperties
+
+	command := commands.TerminalCommand{
+		Command: OSsdkListJava[0],
+		Args:    OSsdkListJava[1:],
+	}
+
+	versionsSTDO, _, err := command.Run()
+	if err != nil {
+		fmt.Println("problem fetching versions", err)
+		// TODO: handle panic
+		log.Panic(err)
+	}
+
+	parseJavaOutput(versionsSTDO, &rv)
+
+	return rv
+}
+
+func GetLocalJavaVersionsSdk() []RemoteJavaProperties {
+	versions := GetRemoteVersions()
+
+	var out []RemoteJavaProperties
+
+	for _, v := range versions {
+		if v.Installed {
+			out = append(out, v)
 		}
 	}
 
-	return finalLocations, nil
+	return out
+}
+
+// private
+func parseJavaOutput(output string, rv *[]RemoteJavaProperties) {
+	lines := strings.Split(output, "\n")
+	var currentVendor string
+
+	// Regular expression to match Java version lines with or without vendor
+	re := regexp.MustCompile(`^\s*([A-Za-z]+)?\s*\|\s*(>>>)?\s*\|\s+(\S+)\s+\|\s+(\S+)\s+\|\s*(installed|local only|)\s*\|\s+(\S+)`)
+
+	for _, line := range lines {
+		matches := re.FindStringSubmatch(line)
+		if matches != nil {
+			vendor := matches[1]
+			if vendor == "" {
+				vendor = currentVendor
+			} else {
+				currentVendor = vendor
+			}
+
+			version := matches[3]
+			status := matches[5]
+			identifier := matches[6]
+
+			// Determine if the version is installed
+			installed := matches[2] == ">>>" || status == "installed" || status == "local only"
+
+			javaProperties := RemoteJavaProperties{
+				JavaVendor:  vendor,
+				JavaVersion: version,
+				Identifier:  identifier,
+				Installed:   installed,
+			}
+
+			*rv = append(*rv, javaProperties)
+		}
+	}
 }
 
 func parseProperties(output string) JavaProperties {

@@ -38,7 +38,7 @@ func (si *SystemInfoComponent) Init() {
 			case 'j', 'l', 'h', 'k':
 				return nil
 			case ']':
-				App.SetFocus(availableLanguesSections.El)
+				App.SetFocus(AvailableLanguesSections.El)
 			}
 		}
 		return event
