@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"regexp"
+	"runtime"
 	"strings"
 )
 
@@ -31,6 +32,51 @@ func GetAllJavaVersionInformation(identifier string) JavaProperties {
 	version := parseProperties(output)
 
 	return version
+}
+
+func SetJavaVersion(identifier string) (string, string, error) {
+	cm := OSSetJava(identifier)
+	command := commands.TerminalCommand{
+		Command: cm[runtime.GOOS][0], Args: cm[runtime.GOOS][1:],
+	}
+
+	stdOut, stderr, err := command.Run()
+
+	if stderr != "" || err != nil {
+		return "", stderr, err
+	}
+
+	return stdOut, "", nil
+}
+
+func UnInstallJavaVersion(identifier string) (string, string, error) {
+	cm := OSUninstallJava(identifier)
+	command := commands.TerminalCommand{
+		Command: cm[runtime.GOOS][0], Args: cm[runtime.GOOS][1:],
+	}
+
+	stdOut, stderr, err := command.Run()
+
+	if stderr != "" || err != nil {
+		return "", stderr, err
+	}
+
+	return stdOut, "", nil
+}
+
+func InstallJavaVersion(identifier string) (string, string, error) {
+	cm := OSinstallJava(identifier)
+	command := commands.TerminalCommand{
+		Command: cm[runtime.GOOS][0], Args: cm[runtime.GOOS][1:],
+	}
+
+	stdOut, stderr, err := command.Run()
+
+	if stderr != "" || err != nil {
+		return "", stderr, err
+	}
+
+	return stdOut, "", nil
 }
 
 func IsSDKMANInstalled() bool {
@@ -139,13 +185,15 @@ func parseJavaOutput(output string, rv *[]RemoteJavaProperties) {
 			identifier := matches[6]
 
 			// Determine if the version is installed
-			installed := matches[2] == ">>>" || status == "installed" || status == "local only"
+			installed := status == "installed" || status == "local only"
+			inUse := matches[2] == ">>>"
 
 			javaProperties := RemoteJavaProperties{
 				JavaVendor:  vendor,
 				JavaVersion: version,
 				Identifier:  identifier,
 				Installed:   installed,
+				InUse:       inUse,
 			}
 
 			*rv = append(*rv, javaProperties)

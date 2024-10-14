@@ -8,12 +8,12 @@ type LanguagePack[L any, R any] interface {
 
 var SupportedLanguages []string = []string{
 	"java",
-	"python",
-	"go",
-	"node",
-	"rust",
-	"c/c++",
-	"kotlin",
+	// "python",
+	// "go",
+	// "node",
+	// "rust",
+	// "c/c++",
+	// "kotlin",
 }
 
 var defaultLang = "java"

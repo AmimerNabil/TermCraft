@@ -13,6 +13,7 @@ import (
 var App tview.Application
 
 func main() {
+	// demo.DemoInstallJavaVersion("21.0.4-amzn")
 	if !slices.Contains(configs.SupportedOS, runtime.GOOS) {
 		log.Panic("Unsupported OS...")
 	}

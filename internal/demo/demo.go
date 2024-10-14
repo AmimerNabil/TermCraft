@@ -1,10 +1,15 @@
 package demo
 
 import (
+	"TermCraft/internal/languages/java"
 	"TermCraft/internal/languages/python"
 	"fmt"
 	"strconv"
 )
+
+func DemoInstallJavaVersion(id string) {
+	java.InstallJavaVersion(id)
+}
 
 func DemoGetPyenvLocal() {
 	out := python.GetPythonLocal()

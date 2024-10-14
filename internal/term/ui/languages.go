@@ -2,7 +2,6 @@ package ui
 
 import (
 	"TermCraft/internal/languages"
-	"TermCraft/internal/term/ui/javaui"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -48,6 +47,6 @@ func (list *AvailableLanguagesList) Init() {
 	})
 
 	list.El.SetSelectedFunc(func(index int, mainText string, sec string, shortcut rune) {
-		App.SetFocus(javaui.Liv)
+		App.SetFocus(jp.Liv)
 	})
 }

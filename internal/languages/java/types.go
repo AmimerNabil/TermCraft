@@ -55,4 +55,5 @@ type RemoteJavaProperties struct {
 	JavaVersion string `json:"java.version"`
 	Identifier  string `json:"java.remote.identifier"`
 	Installed   bool   `json:"java.installed"`
+	InUse       bool   `json:"java.inUse"`
 }
