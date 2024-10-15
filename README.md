@@ -4,12 +4,6 @@
 
 Termcraft is a powerful text-based user interface designed to simplify the management of multiple programming languages and frameworks. With Termcraft, you can easily install, manage, and view different versions of languages such as Java ☕, Python 🐍, Node 🌐, Kotlin 🎯, Go 🚀, and many more. This tool streamlines version control across your development environment, making it easy to switch between languages and frameworks as needed. In the future, Termcraft will also offer functionality to help users manage and share configuration files 🛠️, providing a comprehensive solution for developers.
 
-The issue with the table of contents not linking correctly to the header could be due to the way the header is formatted. GitHub uses a specific method to generate anchor links based on the text of the header. Here's how to ensure your table of contents links properly to the header:
-
-1. **Ensure Consistency**: Make sure the text in the table of contents exactly matches the header text (including capitalization and emojis).
-
-2. **Generate the Correct Link**: When creating links for headers with special characters (like emojis), GitHub replaces them with dashes. For example, the header `## How to Use 🚀` would be linked as `#how-to-use-rocket`.
-
 ## Table of Contents
 
 1. [TermCraft 🧰](#termcraft-)  
