@@ -55,6 +55,14 @@ After completing the prerequisites, you can run the setup script to install and 
 bash <(curl -s https://raw.githubusercontent.com/AmimerNabil/TermCraft/main/setup.sh)
 ```
 
+Add the following to your curr profile like `~/.zshrc` or `~/.bashrc` but make sure to always keep **SDKman at the very bottom of your profile**
+
+```bash
+export PYENV_ROOT="$HOME/.pyenv"
+[[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"
+```
+
 ### Additional Notes
 
 - **For Linux Users**: If you are using Linux and prefer to install Go using the official method instead of Homebrew, you can follow the [official Go installation guide](https://golang.org/doc/install/source).
