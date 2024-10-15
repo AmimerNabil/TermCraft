@@ -1,4 +1,4 @@
-package pythonui
+package ui
 
 import "github.com/rivo/tview"
 

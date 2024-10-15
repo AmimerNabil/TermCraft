@@ -1,7 +1,8 @@
-package javaui
+package ui
 
 import (
 	"TermCraft/internal/languages/java"
+	commandtext "TermCraft/internal/term/ui/command-text"
 	"fmt"
 	"sort"
 	"strings"
@@ -20,15 +21,13 @@ type JavaPanel struct {
 }
 
 var (
-	App        *tview.Application
 	OutFocus   *tview.List
 	indexInUse int
 	inUseText  string
 )
 
-func (jp *JavaPanel) Init(app *tview.Application, outFocus *tview.List) *tview.Grid {
-	App = app
-	OutFocus = outFocus
+func (jp *JavaPanel) Init() *tview.Grid {
+	OutFocus = AvailableLanguesSections.El
 
 	jp.reload()
 
@@ -41,6 +40,19 @@ func (jp *JavaPanel) reload() {
 	jp.Rvs = jp.CreateJavaTreeView()
 
 	jp.El = tview.NewGrid()
+
+	jp.El.
+		SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+			switch event.Key() {
+			case tcell.KeyRune:
+				switch event.Rune() {
+				case '?':
+					commandText.SetText(commandtext.JavaPanel)
+					commandsPages.ShowPage("Command")
+				}
+			}
+			return event
+		})
 
 	// first sow at the very top, the
 	jp.El.SetRows(14, 0)

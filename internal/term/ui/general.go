@@ -1,9 +1,6 @@
 package ui
 
 import (
-	"TermCraft/internal/term/ui/javaui"
-	"TermCraft/internal/term/ui/pythonui"
-
 	"github.com/rivo/tview"
 )
 
@@ -12,14 +9,16 @@ var (
 	systemInfoSection        SystemInfoComponent
 	AvailableLanguesSections AvailableLanguagesList
 	mainContainer            *tview.Pages
+	commandsPages            *tview.Pages
+	commandText              *tview.TextView
+	oldFocus                 tview.Primitive
 
 	// language specific
-	jp javaui.JavaPanel
-	pp pythonui.PythonPanel
+	jp JavaPanel
+	pp PythonPanel
 
 	// config specific
-	// todo
-
+	// TODO:config for later things like .bashrc .zshrc
 )
 
 var (

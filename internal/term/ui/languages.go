@@ -2,6 +2,7 @@ package ui
 
 import (
 	"TermCraft/internal/languages"
+	commandtext "TermCraft/internal/term/ui/command-text"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -37,6 +38,9 @@ func (list *AvailableLanguagesList) Init() {
 			switch event.Rune() {
 			case '[':
 				App.SetFocus(systemInfoSection.El)
+			case '?':
+				commandText.SetText(commandtext.AvailLangCommands)
+				commandsPages.ShowPage("Command")
 			}
 		}
 		return event

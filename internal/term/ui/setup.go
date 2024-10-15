@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
 )
 
@@ -20,21 +21,19 @@ func addItem(root *tview.Grid, el tview.Primitive, positions [7]int, focus bool)
 func Start(app *tview.Application) {
 	App = app
 
-	// initiate sections
 	systemInfoSection.Init()
 	AvailableLanguesSections.Init()
 
-	jp.Init(App, AvailableLanguesSections.El)
+	jp.Init()
 	pp.Init()
 
-	mainContainer = tview.NewPages()
-	// mainContainer.SetTitle("MainContainer").SetTitleAlign(tview.AlignCenter).SetBorder(true)
+	commandsPages = tview.NewPages()
 
-	// set the different NewPages
+	mainContainer = tview.NewPages()
+
 	mainContainer.AddPage("java", jp.El, true, true)
 	mainContainer.AddPage("python", pp.El, true, false)
 
-	// set columns for sections
 	mainGrid := tview.NewGrid().
 		SetRows(
 			6,
@@ -42,7 +41,6 @@ func Start(app *tview.Application) {
 		).
 		SetColumns(30, 0)
 
-		// add the items on the UI
 	addItem(mainGrid, systemInfoSection.El, systemInformationPositions, false)
 	addItem(mainGrid, AvailableLanguesSections.El, availableLanguagesPositions, true)
 
@@ -52,5 +50,37 @@ func Start(app *tview.Application) {
 
 	frame := tview.NewFrame(mainGrid)
 
-	App.SetRoot(frame, true)
+	modal := func(p tview.Primitive, width int) tview.Primitive {
+		return tview.NewFlex().
+			AddItem(nil, 0, 1, false).
+			AddItem(tview.NewFlex().SetDirection(tview.FlexRow).
+				AddItem(nil, 0, 1, false).
+				AddItem(p, 0, 1, true).
+				AddItem(nil, 0, 1, false), width, 1, true).
+			AddItem(nil, 0, 1, false)
+	}
+
+	commandText = tview.NewTextView()
+	commandText.
+		SetDynamicColors(true).
+		SetTextAlign(tview.AlignLeft).
+		SetBorder(true).
+		SetTitle("Help - Commands")
+
+	commandsPages.AddPage("Main", frame, true, true)
+	commandsPages.AddPage("Command", modal(commandText, 70), true, false)
+
+	commandText.
+		SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+			switch event.Key() {
+			case tcell.KeyRune:
+				switch event.Rune() {
+				case 'q':
+					commandsPages.HidePage("Command")
+				}
+			}
+			return event
+		})
+
+	App.SetRoot(commandsPages, true)
 }
