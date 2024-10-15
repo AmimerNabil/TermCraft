@@ -39,10 +39,40 @@ install_pyenv() {
 	fi
 }
 
-# Build the Go project
+# Create the .termcraft directory structure
+setup_termcraft() {
+	echo "Setting up .termcraft directory structure..."
+	mkdir -p "$HOME/.termcraft/src" "$HOME/.termcraft/configs"
+	echo ".termcraft directory structure created."
+}
+
+# Fetch the latest release tarball
+fetch_latest_release() {
+	local repo_url="AmimerNabil/TermCraft" # Change to your repository URL
+	echo "Fetching the latest release from GitHub..."
+	local release_info
+	release_info=$(curl -s "https://api.github.com/repos/$repo_url/releases/latest")
+	local tarball_url=$(echo "$release_info" | grep "tarball_url" | cut -d '"' -f 4)
+
+	if [ -z "$tarball_url" ]; then
+		echo "Failed to fetch the latest release."
+		exit 1
+	fi
+
+	echo "Downloading the latest release..."
+	curl -L -o latest_release.tar.gz "$tarball_url"
+	echo "Latest release downloaded."
+
+	echo "Extracting the release..."
+	tar -xzf latest_release.tar.gz -C "$HOME/.termcraft/src" --strip-components=1
+	echo "Latest release extracted."
+}
+
+# Build the Go project from the extracted release
 install_go_project() {
 	echo "Building Go project..."
-	go build -o termcraft . &
+	cd "$HOME/.termcraft/src" || exit 1 # Change to the extracted repo directory
+	go build -o "$HOME/.termcraft/termcraft" . &
 	spinner
 	echo "Go project built."
 }
@@ -50,7 +80,7 @@ install_go_project() {
 # Move executable to /usr/local/bin
 move_executable() {
 	echo "Moving executable to /usr/local/bin..."
-	sudo mv termcraft /usr/local/bin/ &
+	sudo mv "$HOME/.termcraft/termcraft" /usr/local/bin/ &
 	spinner
 	echo "Executable moved to /usr/local/bin."
 }
@@ -60,6 +90,8 @@ echo "Starting installation process..."
 
 install_sdkman
 install_pyenv
+setup_termcraft
+fetch_latest_release
 install_go_project
 move_executable
 
