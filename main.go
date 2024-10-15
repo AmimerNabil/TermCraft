@@ -2,6 +2,7 @@ package main
 
 import (
 	"TermCraft/configs"
+	"TermCraft/internal/demo"
 	"TermCraft/internal/term/ui"
 	"log"
 	"runtime"
@@ -13,7 +14,7 @@ import (
 var App tview.Application
 
 func main() {
-	// demo.DemoInstallJavaVersion("21.0.4-amzn")
+	demo.DemoInstallJavaVersion("21.0.4-amzn")
 	if !slices.Contains(configs.SupportedOS, runtime.GOOS) {
 		log.Panic("Unsupported OS...")
 	}
@@ -24,4 +25,7 @@ func main() {
 	if err := App.Run(); err != nil {
 		panic(err)
 	}
+	// demo.DemoGetPyenvLocal()
+	// demo.DemoGetAvailPythonLocal()
+	// demo.DemoGetAvailablePythonVersionsToInstall()
 }

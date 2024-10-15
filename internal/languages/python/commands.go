@@ -11,15 +11,6 @@ var versionCommand = map[string][]string{
 	},
 }
 
-var pyenvInstall = map[string][]string{
-	"darwin": {
-		"brew", "install", "pyenv",
-	},
-	"linux": {
-		"brew", "install", "pyenv",
-	},
-}
-
 var pyenvVersion = map[string][]string{
 	"darwin": {
 		"bash", "-c", `
@@ -76,7 +67,6 @@ var (
 	OSpyenvLocal       = pyenvLocal[runtime.GOOS]
 	OSversionCommand   = versionCommand[runtime.GOOS]
 	OSpyenvVersion     = pyenvVersion[runtime.GOOS]
-	OSpyenvInstall     = pyenvInstall[runtime.GOOS]
 	OSpyenvListPython  = pyenvListPythonVersions[runtime.GOOS]
 	OSpyenvInstallList = pyenvInstallList[runtime.GOOS]
 )

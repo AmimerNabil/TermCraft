@@ -2,10 +2,60 @@ package python
 
 import (
 	"TermCraft/internal/term/commands"
+	"TermCraft/internal/utils"
 	"fmt"
+	"log"
+	"os/exec"
 	"regexp"
 	"strings"
 )
+
+func GetPythonLocal() string {
+	pythonVersion, err := exec.Command("python", "--version").Output()
+	if err != nil {
+		log.Fatalf("Error getting Python version: %v", err)
+	}
+
+	pythonBuild, err := exec.Command("python", "-c", `import platform; print(platform.python_build())`).Output()
+	if err != nil {
+		log.Fatalf("Error getting Python build: %v", err)
+	}
+
+	pythonCompiler, err := exec.Command("python", "-c", `import platform; print(platform.python_compiler())`).Output()
+	if err != nil {
+		log.Fatalf("Error getting Python compiler: %v", err)
+	}
+
+	pythonFullVersion, err := exec.Command("python", "-c", `import sys, platform; print(f"Version Info: {sys.version_info}\nSystem: {platform.system()}\nRelease: {platform.release()}\nProcessor: {platform.processor()}")`).Output()
+	if err != nil {
+		log.Fatalf("Error getting full Python version details: %v", err)
+	}
+
+	pipVersion, err := exec.Command("pip", "--version").Output()
+	if err != nil {
+		log.Fatalf("Error getting full pip version details: %v", err)
+	}
+
+	return string(pythonVersion) + string(pythonBuild) + string(pythonCompiler) + string(pythonFullVersion) + string(pipVersion)
+}
+
+func GetAvailPythonLocal() []string {
+	command := commands.TerminalCommand{
+		Command: OSpyenvListPython[0], Args: OSpyenvListPython[1:],
+	}
+
+	stdOut, stdErr, _ := command.Run()
+
+	if stdErr != "" {
+		stdOut = "No python versions activated in this directory."
+	}
+
+	output := utils.Filter(strings.Split(stdOut, "\n"), func(s string) bool {
+		return s != "" && s != "system" && s != "System"
+	})
+
+	return output
+}
 
 func GetAvailableRemoteVersionsToInstall() map[string]map[string][]string {
 	command := commands.TerminalCommand{
