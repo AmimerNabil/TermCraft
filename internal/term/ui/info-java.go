@@ -18,17 +18,11 @@ type JavaPanel struct {
 	Liv          *tview.Flex
 	Rvs          *tview.Flex
 	confirmation *tview.Flex
+	indexInUse   int
+	inUseText    string
 }
 
-var (
-	OutFocus   *tview.List
-	indexInUse int
-	inUseText  string
-)
-
 func (jp *JavaPanel) Init() *tview.Grid {
-	OutFocus = AvailableLanguesSections.El
-
 	jp.reload()
 
 	return jp.El
@@ -75,13 +69,13 @@ func (jp *JavaPanel) createJavaListView() *tview.Flex {
 
 		if java.InUse {
 			inUse = "-> using"
-			indexInUse = i
+			jp.indexInUse = i
 		} else {
 			inUse = ""
 		}
 
-		inUseText = fmt.Sprintf("(%s)\t id: %s %s", java.JavaVendor, java.Identifier, inUse)
-		list.AddItem(inUseText, "", rune('a'+i), nil)
+		jp.inUseText = fmt.Sprintf("(%s)\t id: %s %s", java.JavaVendor, java.Identifier, inUse)
+		list.AddItem(jp.inUseText, "", rune('a'+i), nil)
 	}
 
 	flex := tview.NewFlex().
@@ -110,7 +104,7 @@ func (jp *JavaPanel) createJavaListView() *tview.Flex {
 		case tcell.KeyEnter:
 			jp.UseVersion(getVersionFromID(text), index, list)
 		case tcell.KeyEscape:
-			App.SetFocus(OutFocus)
+			App.SetFocus(AvailableLanguesSections.El)
 		case tcell.KeyTab:
 			App.SetFocus(jp.Rvs)
 			return nil
@@ -127,26 +121,28 @@ func (jp *JavaPanel) createJavaListView() *tview.Flex {
 }
 
 func (jp *JavaPanel) currentlyInstalledVersion() *tview.Flex {
-	textView := tview.NewTextArea()
+	textView := tview.NewTextView()
 
 	props := java.GetAllJavaVersionInformation("java")
 
-	// Format the content
 	content := []string{
-		fmt.Sprintf("Java Home: %s", props.JavaHome),
-		fmt.Sprintf("Runtime Name: %s", props.JavaRuntimeName),
-		fmt.Sprintf("Java Version: %s", props.JavaVersion),
-		fmt.Sprintf("Vendor: %s", props.JavaVendor),
-		fmt.Sprintf("VM Name: %s", props.JavaVMName),
-		fmt.Sprintf("VM Version: %s", props.JavaVMVersion),
-		fmt.Sprintf("OS Architecture: %s", props.OSArch),
-		fmt.Sprintf("OS Name: %s", props.OSName),
-		fmt.Sprintf("OS Version: %s", props.OSVersion),
-		fmt.Sprintf("User Name: %s", props.UserName),
+		fmt.Sprintf("[yellow]Java Home:[-] %s", props.JavaHome),
+		fmt.Sprintf("[yellow]Runtime Name:[-] %s", props.JavaRuntimeName),
+		fmt.Sprintf("[yellow]Java Version:[-] %s", props.JavaVersion),
+		fmt.Sprintf("[yellow]Vendor:[-] %s", props.JavaVendor),
+		fmt.Sprintf("[yellow]VM Name:[-] %s", props.JavaVMName),
+		fmt.Sprintf("[yellow]VM Version:[-] %s", props.JavaVMVersion),
+		fmt.Sprintf("[yellow]OS Architecture:[-] %s", props.OSArch),
+		fmt.Sprintf("[yellow]OS Name:[-] %s", props.OSName),
+		fmt.Sprintf("[yellow]OS Version:[-] %s", props.OSVersion),
+		fmt.Sprintf("[yellow]User Name:[-] %s", props.UserName),
 	}
 
 	// Set the formatted content to the TextView
-	textView.SetText(strings.Join(content, "\n"), false)
+	textView.SetText(strings.Join(content, "\n")).
+		SetDynamicColors(true). // Enable dynamic color tags
+		SetTextAlign(tview.AlignLeft).
+		SetWrap(true)
 
 	flexV := tview.NewFlex().SetDirection(tview.FlexRow).
 		AddItem(nil, 1, 1, false). // Add 2-unit padding to the left
@@ -294,7 +290,7 @@ func (jp *JavaPanel) CreateJavaTreeView() *tview.Flex {
 	treeView.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
 		switch event.Key() {
 		case tcell.KeyEscape:
-			App.SetFocus(OutFocus)
+			App.SetFocus(AvailableLanguesSections.El)
 		case tcell.KeyTab:
 			App.SetFocus(jp.Liv)
 		case tcell.KeyRune:
@@ -346,7 +342,7 @@ func (jp *JavaPanel) UseVersion(identifier string, index int, list *tview.List) 
 	done := make(chan bool)
 	originalText, _ := list.GetItemText(index)
 
-	if indexInUse == index {
+	if jp.indexInUse == index {
 		return
 	}
 
@@ -359,13 +355,13 @@ func (jp *JavaPanel) UseVersion(identifier string, index int, list *tview.List) 
 
 				temp := fmt.Sprintf("%s-> using ", originalText)
 				var newOld string
-				newOld = strings.ReplaceAll(inUseText, "-> using", "")
+				newOld = strings.ReplaceAll(jp.inUseText, "-> using", "")
 
 				list.SetItemText(index, temp, "")
-				list.SetItemText(indexInUse, newOld, "")
+				list.SetItemText(jp.indexInUse, newOld, "")
 
-				indexInUse = index
-				inUseText = temp
+				jp.indexInUse = index
+				jp.inUseText = temp
 
 				jp.El.RemoveItem(jp.Civ)
 				jp.Civ = jp.currentlyInstalledVersion()

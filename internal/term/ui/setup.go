@@ -21,18 +21,33 @@ func addItem(root *tview.Grid, el tview.Primitive, positions [7]int, focus bool)
 func Start(app *tview.Application) {
 	App = app
 
+	// Create a channel to signal when both initializations are done
+	jdone := make(chan bool)
+	pdone := make(chan bool)
+
 	systemInfoSection.Init()
 	AvailableLanguesSections.Init()
 
-	jp.Init()
-	pp.Init()
+	// Run jp.Init() asynchronously
+	go func() {
+		App.QueueUpdate(func() {
+			jp.Init()
+			mainContainer.AddPage("java", jp.El, true, true) // Add Java page when done
+		})
+		jdone <- true // Signal that Java is initialized
+	}()
+
+	// Run pp.Init() asynchronously
+	go func() {
+		App.QueueUpdate(func() {
+			pp.Init()
+			mainContainer.AddPage("python", pp.El, true, false) // Add Python page when done
+		})
+		pdone <- true // Signal that Python is initialized
+	}()
 
 	commandsPages = tview.NewPages()
-
 	mainContainer = tview.NewPages()
-
-	mainContainer.AddPage("java", jp.El, true, true)
-	mainContainer.AddPage("python", pp.El, true, false)
 
 	mainGrid := tview.NewGrid().
 		SetRows(
@@ -83,4 +98,11 @@ func Start(app *tview.Application) {
 		})
 
 	App.SetRoot(commandsPages, true)
+
+	// Run a goroutine to wait for both jp and pp initialization to finish
+	go func() {
+		<-jdone    // Wait for jp.Init() to finish
+		<-pdone    // Wait for pp.Init() to finish
+		app.Draw() // Redraw the application once both are done
+	}()
 }
