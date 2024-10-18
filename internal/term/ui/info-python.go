@@ -3,6 +3,8 @@ package ui
 import (
 	"TermCraft/internal/languages/python"
 	"fmt"
+	"log"
+	"os/exec"
 	"regexp"
 	"sort"
 	"strings"
@@ -152,6 +154,14 @@ func (pp *PythonPanel) initializeCurrLocalVersions() {
 			App.SetFocus(AvailableLanguesSections.El)
 		case tcell.KeyRune:
 			switch event.Rune() {
+			case 'G':
+				if !strings.Contains(text, "global") && !strings.Contains(text, "system") {
+					pp.UsePythonVersionGlobal(CleanVersionString(text))
+				}
+			case 'L':
+				if !strings.Contains(text, "using") && !strings.Contains(text, "system") {
+					pp.UsePythonVersionLocal(CleanVersionString(text))
+				}
 			case 'D':
 				if !strings.Contains(text, "using") && !strings.Contains(text, "system") {
 					pp.UninstallPythonVersion(CleanVersionString(text), index, list)
@@ -321,5 +331,36 @@ func (pp *PythonPanel) UninstallPythonVersion(identifier string, index int, list
 	}()
 }
 
-func (pp *PythonPanel) UsePythonVersionLocal(identifier string, index int, list *tview.List) {
+func (pp *PythonPanel) UsePythonVersionLocal(identifier string) {
+	_, err := exec.Command("pyenv", "local", identifier).Output()
+	if err != nil {
+		log.Fatalf("no local vercion %v", err)
+	}
+
+	pp.localPythons = python.GetAvailPythonLocal()
+
+	pp.currLocal = python.GetPyenvLocal()
+	pp.currGlobal = python.GetPyenvGlobal()
+
+	pp.initializeCurrPython()
+	pp.initializeCurrLocalVersions()
+	App.SetFocus(pp.pythonsLocal)
+}
+
+func (pp *PythonPanel) UsePythonVersionGlobal(identifier string) {
+	identifier = strings.TrimSpace(strings.ReplaceAll(identifier, "-> using", ""))
+
+	_, err := exec.Command("pyenv", "global", identifier).Output()
+	if err != nil {
+		log.Fatalf("no global vercion %s %v", identifier, err)
+	}
+
+	pp.localPythons = python.GetAvailPythonLocal()
+
+	pp.currLocal = python.GetPyenvLocal()
+	pp.currGlobal = python.GetPyenvGlobal()
+
+	pp.initializeCurrPython()
+	pp.initializeCurrLocalVersions()
+	App.SetFocus(pp.pythonsLocal)
 }
