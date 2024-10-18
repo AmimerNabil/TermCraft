@@ -3,6 +3,7 @@ package demo
 import (
 	"TermCraft/internal/languages/java"
 	"TermCraft/internal/languages/python"
+	"TermCraft/internal/term/ui"
 	"fmt"
 	"strconv"
 )
@@ -19,7 +20,7 @@ func DemoGetPyenvLocal() {
 func DemoGetAvailPythonLocal() {
 	out := python.GetAvailPythonLocal()
 	for i, version := range out {
-		fmt.Println(strconv.Itoa(i) + " " + version)
+		fmt.Println(strconv.Itoa(i) + " " + ui.CleanVersionString(version))
 	}
 }
 

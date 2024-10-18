@@ -82,8 +82,40 @@ func Start(app *tview.Application) {
 		SetBorder(true).
 		SetTitle("Help - Commands")
 
+	confirmation = tview.NewFlex().SetDirection(tview.FlexColumnCSS)
+	confirmation.SetBorder(true).SetTitle("Confirm")
+	confButton1 = tview.NewButton("Yes").SetSelectedFunc(nil)
+	confButton2 = tview.NewButton("No").SetSelectedFunc(nil)
+	confTextView = tview.NewTextView()
+	confirmation.
+		AddItem(confTextView, 0, 3, false).
+		AddItem(
+			tview.NewFlex().SetDirection(tview.FlexRowCSS).
+				AddItem(nil, 2, 1, false).
+				AddItem(confButton1, 0, 1, false).
+				AddItem(nil, 4, 3, false).
+				AddItem(confButton2, 0, 1, true).
+				AddItem(nil, 2, 1, false),
+			0, 2, true)
+
+	currFocus := '2'
+	confirmation.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		switch event.Key() {
+		case tcell.KeyTab:
+			if currFocus == '1' {
+				App.SetFocus(confButton2)
+				currFocus = '2'
+			} else {
+				App.SetFocus(confButton1)
+				currFocus = '1'
+			}
+		}
+		return event
+	})
+
 	commandsPages.AddPage("Main", frame, true, true)
 	commandsPages.AddPage("Command", modal(commandText, 70), true, false)
+	commandsPages.AddPage("Confirmation", modal(confirmation, 40), true, false)
 
 	commandText.
 		SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
@@ -105,4 +137,18 @@ func Start(app *tview.Application) {
 		<-pdone    // Wait for pp.Init() to finish
 		app.Draw() // Redraw the application once both are done
 	}()
+}
+
+func setConfirmationContent(whatToConfirm string, ifNo func(), ifYes func()) {
+	commandsPages.ShowPage("Confirmation")
+
+	confButton1.SetSelectedFunc(func() {
+		commandsPages.HidePage("Confirmation")
+		ifYes()
+	})
+	confButton2.SetSelectedFunc(func() {
+		commandsPages.HidePage("Confirmation")
+		ifNo()
+	})
+	confTextView.SetText(whatToConfirm)
 }

@@ -7,8 +7,27 @@ import (
 	"log"
 	"os/exec"
 	"regexp"
+	"runtime"
 	"strings"
 )
+
+func GetPyenvLocal() string {
+	pythonVersion, err := exec.Command("pyenv", "local").Output()
+	if err != nil {
+		log.Fatalf("no local vercion %v", err)
+	}
+
+	return strings.TrimSpace(string(pythonVersion))
+}
+
+func GetPyenvGlobal() string {
+	pythonVersion, err := exec.Command("pyenv", "global").Output()
+	if err != nil {
+		log.Fatalf("no local vercion %v", err)
+	}
+
+	return strings.TrimSpace(string(pythonVersion))
+}
 
 func GetPythonLocal() string {
 	pythonVersion, err := exec.Command("python", "--version").Output()
@@ -69,6 +88,36 @@ func GetAvailableRemoteVersionsToInstall() map[string]map[string][]string {
 	}
 
 	return categorizeVersions(strings.Split(stdOut, "\n"))
+}
+
+func UnInstallPythonVersion(identifier string) (string, string, error) {
+	cm := OSpyenvUninstallPython(identifier)
+	command := commands.TerminalCommand{
+		Command: cm[runtime.GOOS][0], Args: cm[runtime.GOOS][1:],
+	}
+
+	stdOut, stderr, err := command.Run()
+
+	if stderr != "" || err != nil {
+		return "", stderr, err
+	}
+
+	return stdOut, "", nil
+}
+
+func InstallPythonVersion(identifier string) (string, string, error) {
+	cm := OSpyenvInstallPython(identifier)
+	command := commands.TerminalCommand{
+		Command: cm[runtime.GOOS][0], Args: cm[runtime.GOOS][1:],
+	}
+
+	stdOut, stderr, err := command.Run()
+
+	if stderr != "" || err != nil {
+		return "", stderr, err
+	}
+
+	return stdOut, "", nil
 }
 
 func isVersionNumber(version string) bool {

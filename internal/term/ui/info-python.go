@@ -3,8 +3,10 @@ package ui
 import (
 	"TermCraft/internal/languages/python"
 	"fmt"
+	"regexp"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
@@ -14,15 +16,31 @@ type PythonPanel struct {
 	El *tview.Grid
 
 	currPython   *tview.TextView
+	treeRemote   *tview.TreeView
 	pythonsLocal *tview.Flex
 	confirmation *tview.Flex
-	treeRemote   *tview.TreeView
 
-	inUseText string
+	localPythons []string
+
+	currGlobal string
+	currLocal  string
+}
+
+func CleanVersionString(version string) string {
+	cleaned := strings.TrimSpace(version)
+	cleaned = strings.TrimPrefix(cleaned, "*")
+	re := regexp.MustCompile(`\s*\(.*\)$`)
+	cleaned = re.ReplaceAllString(cleaned, "")
+
+	return strings.TrimSpace(cleaned)
 }
 
 func (pp *PythonPanel) Init() *tview.Grid {
 	pp.El = tview.NewGrid()
+	pp.localPythons = python.GetAvailPythonLocal()
+
+	pp.currLocal = python.GetPyenvLocal()
+	pp.currGlobal = python.GetPyenvGlobal()
 
 	pp.initializeCurrPython()
 	pp.initializeRemotePythons()
@@ -83,19 +101,20 @@ func (pp *PythonPanel) initializeCurrPython() {
 }
 
 func (pp *PythonPanel) initializeCurrLocalVersions() {
-	pythons := python.GetAvailPythonLocal()
 	list := tview.NewList().ShowSecondaryText(false)
 
-	for i, python := range pythons {
-		var inUse string
+	for i, python := range pp.localPythons {
+		inUse := ""
+		global := ""
 
 		if strings.Contains(python, "*") {
 			inUse = "-> using"
-		} else {
-			inUse = ""
+		}
+		if strings.Contains(python, pp.currGlobal) {
+			global = "(global)"
 		}
 
-		formatedText := fmt.Sprintf("(%s) %s", python, inUse)
+		formatedText := fmt.Sprintf("%s %s %s", python, global, inUse)
 		list.AddItem(formatedText, "", rune('a'+i), nil)
 	}
 
@@ -113,18 +132,38 @@ func (pp *PythonPanel) initializeCurrLocalVersions() {
 		tview.Styles.TertiaryTextColor,
 	)
 
-	list.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey { return event })
 	pp.El.AddItem(flexV, 1, 0, 1, 1, 0, 0, false)
 
 	pp.pythonsLocal = flexV
 
 	list.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		index := list.GetCurrentItem()
+		var text string
+		if len(pp.localPythons) > 0 && index >= 0 {
+			itemText, _ := list.GetItemText(index)
+			text = itemText
+		}
+
 		switch event.Key() {
 		case tcell.KeyTab:
 			App.SetFocus(pp.treeRemote)
 			return nil
 		case tcell.KeyEscape:
 			App.SetFocus(AvailableLanguesSections.El)
+		case tcell.KeyRune:
+			switch event.Rune() {
+			case 'D':
+				if !strings.Contains(text, "using") && !strings.Contains(text, "system") {
+					pp.UninstallPythonVersion(CleanVersionString(text), index, list)
+				} else {
+					setConfirmationContent("Can't remove this python version. Press enter to go back.",
+						func() {
+							App.SetFocus(pp.pythonsLocal)
+						}, func() {
+							App.SetFocus(pp.pythonsLocal)
+						})
+				}
+			}
 		}
 		return event
 	})
@@ -156,7 +195,29 @@ func (pp *PythonPanel) initializeRemotePythons() {
 			versionDetails := versionsMap[version]
 
 			for _, detail := range versionDetails {
-				detailNode := tview.NewTreeNode(detail).SetColor(tview.Styles.PrimaryTextColor)
+				final := detail
+
+				for _, v := range pp.localPythons {
+					cleanedVersion := CleanVersionString(v)
+					if cleanedVersion == detail {
+						final = fmt.Sprintf("%s *", detail)
+						break
+					}
+				}
+
+				detailNode := tview.NewTreeNode(final).SetColor(tview.Styles.PrimaryTextColor)
+
+				detailNode.SetSelectedFunc(func() {
+					if !strings.Contains(final, "*") {
+						setConfirmationContent("Are you sure you want to install python version "+detail+"?",
+							func() {
+								App.SetFocus(pp.treeRemote)
+							}, func() {
+								pp.InstallPythonVersion(detail, detailNode)
+								App.SetFocus(pp.treeRemote)
+							})
+					}
+				})
 
 				versionNode.AddChild(detailNode)
 			}
@@ -197,4 +258,68 @@ func (pp *PythonPanel) initializeRemotePythons() {
 
 	pp.treeRemote = treeView
 	pp.El.AddItem(flex, 1, 1, 1, 1, 0, 0, false)
+}
+
+func (pp *PythonPanel) InstallPythonVersion(identifier string, node *tview.TreeNode) {
+	done := make(chan bool)
+	originalText := node.GetText()
+
+	go func() {
+		rotation := []string{"|", "/", "-", "\\"} // Symbols for the spinner
+		i := 0
+		for {
+			select {
+			case <-done:
+				node.SetText(fmt.Sprintf("%s *", originalText))
+				node.SetSelectedFunc(func() {})
+				pp.El.RemoveItem(pp.pythonsLocal)
+				pp.localPythons = python.GetAvailPythonLocal()
+				pp.initializeCurrLocalVersions()
+				pp.El.AddItem(pp.pythonsLocal, 1, 0, 1, 1, 0, 0, false)
+				App.Draw()
+				return
+			default:
+				// Update the node text, appending the spinner to the original text
+				node.SetText(fmt.Sprintf("%s %s", originalText, rotation[i%len(rotation)]))
+				App.Draw()
+				i++
+				time.Sleep(200 * time.Millisecond) // Controls the speed of the spinner
+			}
+		}
+	}()
+
+	go func() {
+		_, stderr, err := python.InstallPythonVersion(identifier)
+		if err != nil || stderr != "" {
+			node.SetText(fmt.Sprintf("%s - Failed to install %s: %s", originalText, identifier, stderr))
+		} else {
+			node.SetText(fmt.Sprintf("%s - Installed %s successfully!", originalText, identifier))
+		}
+		done <- true
+	}()
+}
+
+func (pp *PythonPanel) UninstallPythonVersion(identifier string, index int, list *tview.List) {
+	// originalText, _ := list.GetItemText(index)
+
+	go func() {
+		_, stderr, err := python.UnInstallPythonVersion(identifier)
+
+		if err != nil || stderr != "" {
+			App.QueueUpdate(func() {
+				pp.currPython.SetText("identifier : " + identifier)
+
+				list.SetItemText(index, fmt.Sprintf("%s: %s", identifier, stderr), "")
+			})
+			App.Draw()
+		} else {
+			App.QueueUpdate(func() {
+				list.RemoveItem(index)
+			})
+			App.Draw()
+		}
+	}()
+}
+
+func (pp *PythonPanel) UsePythonVersionLocal(identifier string, index int, list *tview.List) {
 }

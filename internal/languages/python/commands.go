@@ -1,6 +1,9 @@
 package python
 
-import "runtime"
+import (
+	"fmt"
+	"runtime"
+)
 
 var versionCommand = map[string][]string{
 	"darwin": {
@@ -37,6 +40,19 @@ var pyenvListPythonVersions = map[string][]string{
 	},
 }
 
+var pyenvGlobal = map[string][]string{
+	"darwin": {
+		"bash", "-c", `
+            pyenv global
+        `,
+	},
+	"linux": {
+		"bash", "-c", `
+            pyenv global
+        `,
+	},
+}
+
 var pyenvLocal = map[string][]string{
 	"darwin": {
 		"bash", "-c", `
@@ -63,10 +79,58 @@ var pyenvInstallList = map[string][]string{
 	},
 }
 
+var pyenvInstall = func(identifier string) map[string][]string {
+	return map[string][]string{
+		"darwin": {
+			"bash", "-c", fmt.Sprintf(`
+				pyenv install %s
+			`, identifier),
+		},
+		"linux": {
+			"bash", "-c", fmt.Sprintf(`
+				pyenv install %s
+			`, identifier),
+		},
+	}
+}
+
+var pyenvUse = func(identifier string) map[string][]string {
+	return map[string][]string{
+		"darwin": {
+			"bash", "-c", fmt.Sprintf(`
+				pyenv global %s
+			`, identifier),
+		},
+		"linux": {
+			"bash", "-c", fmt.Sprintf(`
+				pyenv global %s
+			`, identifier),
+		},
+	}
+}
+
+var pyenvUninstall = func(identifier string) map[string][]string {
+	return map[string][]string{
+		"darwin": {
+			"bash", "-c", fmt.Sprintf(`
+				pyenv uninstall -f %s
+			`, identifier),
+		},
+		"linux": {
+			"bash", "-c", fmt.Sprintf(`
+				source "$HOME/.sdkman/bin/sdkman-init.sh"
+				pyenv uninstall -f %s
+			`, identifier),
+		},
+	}
+}
+
 var (
-	OSpyenvLocal       = pyenvLocal[runtime.GOOS]
-	OSversionCommand   = versionCommand[runtime.GOOS]
-	OSpyenvVersion     = pyenvVersion[runtime.GOOS]
-	OSpyenvListPython  = pyenvListPythonVersions[runtime.GOOS]
-	OSpyenvInstallList = pyenvInstallList[runtime.GOOS]
+	OSpyenvLocal           = pyenvLocal[runtime.GOOS]
+	OSversionCommand       = versionCommand[runtime.GOOS]
+	OSpyenvVersion         = pyenvVersion[runtime.GOOS]
+	OSpyenvListPython      = pyenvListPythonVersions[runtime.GOOS]
+	OSpyenvInstallList     = pyenvInstallList[runtime.GOOS]
+	OSpyenvInstallPython   = pyenvInstall
+	OSpyenvUninstallPython = pyenvUninstall
 )

@@ -13,6 +13,11 @@ var (
 	commandText              *tview.TextView
 	oldFocus                 tview.Primitive
 
+	confirmation *tview.Flex
+	confButton1  *tview.Button
+	confButton2  *tview.Button
+	confTextView *tview.TextView
+
 	// language specific
 	jp JavaPanel
 	pp PythonPanel

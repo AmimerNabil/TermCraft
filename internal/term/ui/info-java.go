@@ -18,8 +18,9 @@ type JavaPanel struct {
 	Liv          *tview.Flex
 	Rvs          *tview.Flex
 	confirmation *tview.Flex
-	indexInUse   int
-	inUseText    string
+
+	indexInUse int
+	inUseText  string
 }
 
 func (jp *JavaPanel) Init() *tview.Grid {
@@ -217,49 +218,15 @@ func (jp *JavaPanel) CreateJavaTreeView() *tview.Flex {
 
 				versionNode := tview.NewTreeNode(version.JavaVersion + " " + installed).SetColor(tview.Styles.PrimaryTextColor)
 				versionNode.SetSelectedFunc(func() {
-					// ask for confirmation
-					jp.confirmation = tview.NewFlex().SetDirection(tview.FlexColumnCSS)
-					currFocus := '2'
-					b1 := tview.NewButton("Yes").SetSelectedFunc(func() {
-						jp.Civ.RemoveItem(jp.confirmation)
-						jp.InstallVersion(version.Identifier, versionNode)
-						App.SetFocus(jp.Rvs)
-					})
-					b2 := tview.NewButton("No").SetSelectedFunc(func() {
-						jp.Civ.RemoveItem(jp.confirmation)
-						App.SetFocus(jp.Rvs)
-					})
-
-					jp.confirmation.
-						AddItem(nil, 4, 1, false).
-						AddItem(
-							tview.NewTextArea().
-								SetText("Are you sure you want to Install: "+version.Identifier, false),
-							0, 3, false).
-						AddItem(
-							tview.NewFlex().SetDirection(tview.FlexRowCSS).
-								AddItem(b1, 0, 1, false).
-								AddItem(nil, 4, 3, false).
-								AddItem(b2, 0, 1, true),
-							0, 2, true)
-
-					jp.confirmation.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-						switch event.Key() {
-						case tcell.KeyTab:
-							if currFocus == '1' {
-								App.SetFocus(b2)
-								currFocus = '2'
-							} else {
-								App.SetFocus(b1)
-								currFocus = '1'
-							}
-						}
-						return event
-					})
-
-					jp.Civ.AddItem(jp.confirmation, 0, 1, false)
-
-					App.SetFocus(jp.confirmation)
+					if installed != "*" {
+						setConfirmationContent("Are you sure you want to install "+version.Identifier+"?",
+							func() {
+								App.SetFocus(jp.Rvs)
+							}, func() {
+								jp.InstallJavaVersion(version.Identifier, versionNode)
+								App.SetFocus(jp.Rvs)
+							})
+					}
 				})
 				majorMinorNode.AddChild(versionNode)
 			}
@@ -391,7 +358,7 @@ func (jp *JavaPanel) UseVersion(identifier string, index int, list *tview.List) 
 	}()
 }
 
-func (jp *JavaPanel) InstallVersion(identifier string, node *tview.TreeNode) {
+func (jp *JavaPanel) InstallJavaVersion(identifier string, node *tview.TreeNode) {
 	done := make(chan bool)
 	originalText := node.GetText()
 
