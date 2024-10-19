@@ -40,32 +40,6 @@ var pyenvListPythonVersions = map[string][]string{
 	},
 }
 
-var pyenvGlobal = map[string][]string{
-	"darwin": {
-		"bash", "-c", `
-            pyenv global
-        `,
-	},
-	"linux": {
-		"bash", "-c", `
-            pyenv global
-        `,
-	},
-}
-
-var pyenvLocal = map[string][]string{
-	"darwin": {
-		"bash", "-c", `
-            pyenv local
-        `,
-	},
-	"linux": {
-		"bash", "-c", `
-            pyenv local
-        `,
-	},
-}
-
 var pyenvInstallList = map[string][]string{
 	"darwin": {
 		"bash", "-c", `
@@ -126,7 +100,6 @@ var pyenvUninstall = func(identifier string) map[string][]string {
 }
 
 var (
-	OSpyenvLocal           = pyenvLocal[runtime.GOOS]
 	OSversionCommand       = versionCommand[runtime.GOOS]
 	OSpyenvVersion         = pyenvVersion[runtime.GOOS]
 	OSpyenvListPython      = pyenvListPythonVersions[runtime.GOOS]

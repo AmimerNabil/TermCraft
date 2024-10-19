@@ -14,7 +14,7 @@ import (
 func GetPyenvLocal() string {
 	pythonVersion, err := exec.Command("pyenv", "local").Output()
 	if err != nil {
-		log.Fatalf("no local vercion %v", err)
+		return "no local vercions handled with pyenv"
 	}
 
 	return strings.TrimSpace(string(pythonVersion))
@@ -23,7 +23,7 @@ func GetPyenvLocal() string {
 func GetPyenvGlobal() string {
 	pythonVersion, err := exec.Command("pyenv", "global").Output()
 	if err != nil {
-		log.Fatalf("no local vercion %v", err)
+		return "no global vercions handled with pyenv"
 	}
 
 	return strings.TrimSpace(string(pythonVersion))
