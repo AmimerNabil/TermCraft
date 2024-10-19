@@ -2,6 +2,7 @@ package ui
 
 import (
 	"TermCraft/internal/languages/python"
+	commandtext "TermCraft/internal/term/ui/command-text"
 	"fmt"
 	"log"
 	"os/exec"
@@ -47,6 +48,19 @@ func (pp *PythonPanel) Init() *tview.Grid {
 	pp.initializeCurrPython()
 	pp.initializeRemotePythons()
 	pp.initializeCurrLocalVersions()
+
+	pp.El.
+		SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+			switch event.Key() {
+			case tcell.KeyRune:
+				switch event.Rune() {
+				case '?':
+					commandText.SetText(commandtext.PythonPanel)
+					commandsPages.ShowPage("Command")
+				}
+			}
+			return event
+		})
 
 	// first sow at the very top, the
 	pp.El.SetRows(14, 0)
