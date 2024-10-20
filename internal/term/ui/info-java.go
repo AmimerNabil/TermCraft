@@ -371,10 +371,13 @@ func (jp *JavaPanel) InstallJavaVersion(identifier string, node *tview.TreeNode)
 			case <-done:
 
 				if errtext != "" {
-					node.SetText(fmt.Sprintf("%s %s", originalText, errtext))
+					setConfirmationContent(fmt.Sprintf("%s. Press enter to escape this.", errtext), func() {}, func() {})
+
+					node.SetText(fmt.Sprintf("%s can't install", originalText))
 				} else {
 					node.SetText(fmt.Sprintf("%s *", originalText))
 				}
+
 				node.SetText(fmt.Sprintf("%s *", originalText))
 				jp.El.RemoveItem(jp.Liv)
 				jp.Liv = jp.createJavaListView()

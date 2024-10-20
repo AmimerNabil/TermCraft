@@ -296,7 +296,9 @@ func (pp *PythonPanel) InstallPythonVersion(identifier string, node *tview.TreeN
 			select {
 			case <-done:
 				if errtext != "" {
-					node.SetText(fmt.Sprintf("%s %s", originalText, errtext))
+					setConfirmationContent(fmt.Sprintf("%s. Press enter to escape this.", errtext), func() {}, func() {})
+
+					node.SetText(fmt.Sprintf("%s can't install", originalText))
 				} else {
 					node.SetText(fmt.Sprintf("%s *", originalText))
 				}
