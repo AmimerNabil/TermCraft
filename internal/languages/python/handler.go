@@ -47,7 +47,8 @@ func GetPythonLocal() string {
 
 	pythonFullVersion, err := exec.Command("python", "-c", `import sys, platform; print(f"Version Info: {sys.version_info}\nSystem: {platform.system()}\nRelease: {platform.release()}\nProcessor: {platform.processor()}")`).Output()
 	if err != nil {
-		log.Fatalf("Error getting full Python version details: %v", err)
+		pythonFullVersion = []byte{'\n', '\n', '\n', '\n'}
+		// log.Fatalf("Error getting full Python version details: %v", err)
 	}
 
 	pipVersion, err := exec.Command("pip", "--version").Output()
@@ -171,7 +172,7 @@ func categorizeVersions(versions []string) map[string]map[string][]string {
 		case strings.HasPrefix(version, "nogil"):
 			category = "nogil"
 		case isVersionNumber(version):
-			category = "pyston"
+			category = "python-classic"
 		default:
 			category = "others" // Place unknown versions here
 		}

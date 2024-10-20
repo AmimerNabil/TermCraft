@@ -361,6 +361,7 @@ func (jp *JavaPanel) UseVersion(identifier string, index int, list *tview.List) 
 func (jp *JavaPanel) InstallJavaVersion(identifier string, node *tview.TreeNode) {
 	done := make(chan bool)
 	originalText := node.GetText()
+	errtext := ""
 
 	go func() {
 		rotation := []string{"|", "/", "-", "\\"} // Symbols for the spinner
@@ -368,6 +369,12 @@ func (jp *JavaPanel) InstallJavaVersion(identifier string, node *tview.TreeNode)
 		for {
 			select {
 			case <-done:
+
+				if errtext != "" {
+					node.SetText(fmt.Sprintf("%s %s", originalText, errtext))
+				} else {
+					node.SetText(fmt.Sprintf("%s *", originalText))
+				}
 				node.SetText(fmt.Sprintf("%s *", originalText))
 				jp.El.RemoveItem(jp.Liv)
 				jp.Liv = jp.createJavaListView()
@@ -387,6 +394,7 @@ func (jp *JavaPanel) InstallJavaVersion(identifier string, node *tview.TreeNode)
 	go func() {
 		_, stderr, err := java.InstallJavaVersion(identifier)
 		if err != nil || stderr != "" {
+			errtext = stderr
 			node.SetText(fmt.Sprintf("%s - Failed to install %s: %s", originalText, identifier, stderr))
 		} else {
 			node.SetText(fmt.Sprintf("%s - Installed %s successfully!", originalText, identifier))

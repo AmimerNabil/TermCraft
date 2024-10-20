@@ -287,6 +287,7 @@ func (pp *PythonPanel) initializeRemotePythons() {
 func (pp *PythonPanel) InstallPythonVersion(identifier string, node *tview.TreeNode) {
 	done := make(chan bool)
 	originalText := node.GetText()
+	errtext := ""
 
 	go func() {
 		rotation := []string{"|", "/", "-", "\\"} // Symbols for the spinner
@@ -294,7 +295,11 @@ func (pp *PythonPanel) InstallPythonVersion(identifier string, node *tview.TreeN
 		for {
 			select {
 			case <-done:
-				node.SetText(fmt.Sprintf("%s *", originalText))
+				if errtext != "" {
+					node.SetText(fmt.Sprintf("%s %s", originalText, errtext))
+				} else {
+					node.SetText(fmt.Sprintf("%s *", originalText))
+				}
 				node.SetSelectedFunc(func() {})
 				pp.El.RemoveItem(pp.pythonsLocal)
 				pp.localPythons = python.GetAvailPythonLocal()
@@ -315,6 +320,7 @@ func (pp *PythonPanel) InstallPythonVersion(identifier string, node *tview.TreeN
 	go func() {
 		_, stderr, err := python.InstallPythonVersion(identifier)
 		if err != nil || stderr != "" {
+			errtext = stderr
 			node.SetText(fmt.Sprintf("%s - Failed to install %s: %s", originalText, identifier, stderr))
 		} else {
 			node.SetText(fmt.Sprintf("%s - Installed %s successfully!", originalText, identifier))
