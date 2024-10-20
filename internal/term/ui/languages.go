@@ -54,8 +54,8 @@ func (list *AvailableLanguagesList) Init() {
 		switch mainText {
 		case "java":
 			App.SetFocus(jp.Liv)
-		case "python":
-			App.SetFocus(pp.pythonsLocal)
+			// case "python":
+			// 	App.SetFocus(pp.pythonsLocal)
 		}
 	})
 }

@@ -20,10 +20,6 @@ var (
 
 	// language specific
 	jp JavaPanel
-	pp PythonPanel
-
-	// config specific
-	// TODO:config for later things like .bashrc .zshrc
 )
 
 var (

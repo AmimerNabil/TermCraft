@@ -38,13 +38,13 @@ func Start(app *tview.Application) {
 	}()
 
 	// Run pp.Init() asynchronously
-	go func() {
-		App.QueueUpdate(func() {
-			pp.Init()
-			mainContainer.AddPage("python", pp.El, true, false) // Add Python page when done
-		})
-		pdone <- true // Signal that Python is initialized
-	}()
+	// go func() {
+	// 	App.QueueUpdate(func() {
+	// 		pp.Init()
+	// 		mainContainer.AddPage("python", pp.El, true, false) // Add Python page when done
+	// 	})
+	// 	pdone <- true // Signal that Python is initialized
+	// }()
 
 	commandsPages = tview.NewPages()
 	mainContainer = tview.NewPages()
