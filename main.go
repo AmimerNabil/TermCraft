@@ -17,6 +17,14 @@ import (
 var App tview.Application
 
 func main() {
+	demo()
+	// termcraft()
+}
+
+func demo() {
+}
+
+func termcraft() {
 	// Define the update flags
 	updateFlagShort := flag.Bool("U", false, "Update Termcraft to the latest version")
 	updateFlagLong := flag.Bool("update", false, "Update Termcraft to the latest version")
