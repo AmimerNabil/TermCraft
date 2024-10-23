@@ -51,11 +51,6 @@ func (list *AvailableLanguagesList) Init() {
 	})
 
 	list.El.SetSelectedFunc(func(index int, mainText string, sec string, shortcut rune) {
-		switch mainText {
-		case "java":
-			App.SetFocus(jp.Liv)
-			// case "python":
-			// 	App.SetFocus(pp.pythonsLocal)
-		}
+		App.SetFocus(lgs[mainText].currVersionsInstalled)
 	})
 }

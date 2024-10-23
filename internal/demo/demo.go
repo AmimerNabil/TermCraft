@@ -3,9 +3,7 @@ package demo
 import (
 	"TermCraft/internal/languages/java"
 	"TermCraft/internal/languages/python"
-	"TermCraft/internal/term/ui"
 	"fmt"
-	"strconv"
 )
 
 func DemoInstallJavaVersion(id string) {
@@ -18,10 +16,10 @@ func DemoGetPyenvLocal() {
 }
 
 func DemoGetAvailPythonLocal() {
-	out := python.GetAvailPythonLocal()
-	for i, version := range out {
-		fmt.Println(strconv.Itoa(i) + " " + ui.CleanVersionString(version))
-	}
+	// out := python.GetAvailPythonLocal()
+	// for i, version := range out {
+	// 	// fmt.Println(strconv.Itoa(i) + " " + ui.CleanVersionString(version))
+	// }
 }
 
 func DemoGetAvailablePythonVersionsToInstall() {

@@ -21,30 +21,11 @@ func addItem(root *tview.Grid, el tview.Primitive, positions [7]int, focus bool)
 func Start(app *tview.Application) {
 	App = app
 
-	// Create a channel to signal when both initializations are done
-	jdone := make(chan bool)
-	pdone := make(chan bool)
-
 	systemInfoSection.Init()
 	AvailableLanguesSections.Init()
+	lgs = make(map[string]*Panel)
 
-	// Run jp.Init() asynchronously
-	go func() {
-		App.QueueUpdate(func() {
-			jp.Init()
-			mainContainer.AddPage("java", jp.El, true, true) // Add Java page when done
-		})
-		jdone <- true // Signal that Java is initialized
-	}()
-
-	// Run pp.Init() asynchronously
-	// go func() {
-	// 	App.QueueUpdate(func() {
-	// 		pp.Init()
-	// 		mainContainer.AddPage("python", pp.El, true, false) // Add Python page when done
-	// 	})
-	// 	pdone <- true // Signal that Python is initialized
-	// }()
+	initializePanels()
 
 	commandsPages = tview.NewPages()
 	mainContainer = tview.NewPages()
@@ -133,7 +114,7 @@ func Start(app *tview.Application) {
 
 	// Run a goroutine to wait for both jp and pp initialization to finish
 	go func() {
-		<-jdone    // Wait for jp.Init() to finish
+		// <-jdone    // Wait for jp.Init() to finish
 		<-pdone    // Wait for pp.Init() to finish
 		app.Draw() // Redraw the application once both are done
 	}()
@@ -151,4 +132,18 @@ func setConfirmationContent(whatToConfirm string, ifNo func(), ifYes func()) {
 		ifNo()
 	})
 	confTextView.SetText(whatToConfirm)
+}
+
+func initializePanels() {
+	go func() {
+		key := "python"
+		pp = NewPythonPanel()
+		lgs[key] = pp.Panel
+
+		App.QueueUpdate(func() {
+			mainContainer.AddPage(key, pp.container, true, true) // Add Python page when done
+		})
+
+		pdone <- true // Signal that Python is initialized
+	}()
 }

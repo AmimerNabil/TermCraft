@@ -24,6 +24,12 @@ type Panel struct {
 	localVersions []string
 }
 
+func (pp *Panel) i() {
+	pp.container = tview.NewGrid()
+	pp.container.SetRows(14, 0)
+	pp.container.SetColumns(-1, -1)
+}
+
 func (pp *Panel) initCurrVersionInfo(info string) {
 	if pp.currVersionView != nil {
 		pp.container.RemoveItem(pp.currVersionView)
@@ -45,8 +51,7 @@ func (pp *Panel) initCurrVersionInfo(info string) {
 
 	pp.currVersionHolder = tview.NewFlex().SetDirection(tview.FlexColumnCSS).
 		AddItem(nil, 1, 1, false).
-		AddItem(flexPaddingH, 0, 1, true).
-		AddItem(nil, 2, 1, false)
+		AddItem(flexPaddingH, 0, 1, true)
 
 	pp.currVersionHolder.SetBorder(true).SetTitle("Currently Used").SetTitleColor(tview.Styles.TertiaryTextColor)
 
@@ -62,17 +67,6 @@ func (pp *Panel) initCurrVersions(versions []string) {
 	}
 
 	list := tview.NewList().ShowSecondaryText(false)
-	list.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
-		switch event.Key() {
-		case tcell.KeyTab:
-			App.SetFocus(pp.remoteVersionsAvailable)
-			return nil
-		case tcell.KeyEscape:
-			App.SetFocus(AvailableLanguesSections.El)
-		}
-		return event
-	})
-
 	for i, versions := range versions {
 		list.AddItem(versions, "", rune('a'+i), nil)
 	}
@@ -167,6 +161,12 @@ func (pp *Panel) initRemoteVersions(versions map[string]map[string][]string, ins
 		}
 		return event
 	})
+
+	if pp.remoteVersionsAvailable != nil {
+		pp.container.RemoveItem(pp.remoteVersionHolder)
+		pp.remoteVersionHolder = nil
+		pp.remoteVersionHolder = nil
+	}
 
 	pp.remoteVersionHolder = tview.NewFlex().
 		AddItem(nil, 1, 1, false). // Add 2-unit padding to the left

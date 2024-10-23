@@ -19,7 +19,14 @@ var (
 	confTextView *tview.TextView
 
 	// language specific
-	jp JavaPanel
+	jp *JavaPanel
+	pp *PythonPanel
+
+	// mapping
+	lgs map[string]*Panel
+
+	// synchro channels
+	pdone = make(chan bool)
 )
 
 var (
