@@ -24,10 +24,33 @@ type Panel struct {
 	localVersions []string
 }
 
-func (pp *Panel) i() {
+func (pp *Panel) updateLocal(update func() []string) {
+	pp.localVersions = update()
+
+	pp.currVersionsInstalled.Clear()
+
+	for i, versions := range pp.localVersions {
+		pp.currVersionsInstalled.AddItem(versions, "", rune('a'+i), nil)
+	}
+}
+
+func (pp *Panel) i(commands string) {
 	pp.container = tview.NewGrid()
 	pp.container.SetRows(14, 0)
 	pp.container.SetColumns(-1, -1)
+
+	pp.container.
+		SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+			switch event.Key() {
+			case tcell.KeyRune:
+				switch event.Rune() {
+				case '?':
+					commandText.SetText(commands)
+					commandsPages.ShowPage("Command")
+				}
+			}
+			return event
+		})
 }
 
 func (pp *Panel) initCurrVersionInfo(info string) {
@@ -89,7 +112,7 @@ func (pp *Panel) initCurrVersions(versions []string) {
 	pp.container.AddItem(pp.currVersionInstalledHolder, 1, 0, 1, 1, 0, 0, false)
 }
 
-func (pp *Panel) initRemoteVersions(versions map[string]map[string][]string, installFunc func(identifier string) (string, string, error)) {
+func (pp *Panel) initRemoteVersions(updateLocal func() []string, versions map[string]map[string][]string, installFunc func(identifier string) (string, string, error)) {
 	vendors := make([]string, 0, len(versions))
 	for vendor := range versions {
 		vendors = append(vendors, vendor)
@@ -129,7 +152,7 @@ func (pp *Panel) initRemoteVersions(versions map[string]map[string][]string, ins
 							func() {
 								App.SetFocus(pp.remoteVersionsAvailable)
 							}, func() {
-								pp.installRemoteVersion(installFunc, detail, detailNode)
+								pp.installRemoteVersion(updateLocal, installFunc, detail, detailNode)
 								App.SetFocus(pp.remoteVersionsAvailable)
 							})
 					}
@@ -179,10 +202,9 @@ func (pp *Panel) initRemoteVersions(versions map[string]map[string][]string, ins
 	pp.container.AddItem(pp.remoteVersionHolder, 1, 1, 1, 1, 0, 0, false)
 }
 
-func (pp *Panel) installRemoteVersion(installerFunc func(identifier string) (string, string, error), identifier string, node *tview.TreeNode) {
+func (pp *Panel) installRemoteVersion(updateLocal func() []string, installerFunc func(identifier string) (string, string, error), identifier string, node *tview.TreeNode) {
 	done := make(chan bool)
 	originalText := node.GetText()
-	errtext := ""
 
 	go func() {
 		rotation := []string{"|", "/", "-", "\\"} // Symbols for the spinner
@@ -190,14 +212,10 @@ func (pp *Panel) installRemoteVersion(installerFunc func(identifier string) (str
 		for {
 			select {
 			case <-done:
-				if errtext != "" {
-					setConfirmationContent(fmt.Sprintf("%s. Press enter to escape this.", errtext), func() {}, func() {})
-
-					node.SetText(fmt.Sprintf("%s can't install", originalText))
-				} else {
-					node.SetText(fmt.Sprintf("%s *", originalText))
-				}
+				node.SetText(fmt.Sprintf("%s *", originalText))
 				node.SetSelectedFunc(func() {})
+
+				pp.updateLocal(updateLocal)
 
 				App.Draw()
 				return
@@ -212,9 +230,9 @@ func (pp *Panel) installRemoteVersion(installerFunc func(identifier string) (str
 	}()
 
 	go func() {
-		_, stderr, err := installerFunc(identifier)
+		_, stderr, err := installerFunc(strings.TrimSpace(identifier))
 		if err != nil || stderr != "" {
-			errtext = stderr
+			// errtext = stderr
 			node.SetText(fmt.Sprintf("%s - Failed to install %s: %s", originalText, identifier, stderr))
 		} else {
 			node.SetText(fmt.Sprintf("%s - Installed %s successfully!", originalText, identifier))
@@ -226,7 +244,6 @@ func (pp *Panel) installRemoteVersion(installerFunc func(identifier string) (str
 func (pp *Panel) UninstallPythonVersion(uninstallFunc func(identifier string) (string, string, error), identifier string, index int, list *tview.List) {
 	go func() {
 		_, stderr, err := uninstallFunc(identifier)
-
 		if err != nil || stderr != "" {
 			App.QueueUpdate(func() {
 				list.SetItemText(index, fmt.Sprintf("%s: %s", identifier, stderr), "")

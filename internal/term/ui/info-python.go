@@ -29,7 +29,7 @@ func NewPythonPanel() *PythonPanel {
 		Panel: &Panel{},
 	}
 
-	pp.i()
+	pp.i(commandtext.PythonPanel)
 	pp.init()
 
 	return pp
@@ -53,7 +53,7 @@ func (pp *PythonPanel) init() {
 
 	pp.initCurrVersionInfo(pp.currPythonInfo)
 	pp.initCurrVersions(pp.localVersions)
-	pp.initRemoteVersions(pp.remotePythons, python.InstallPythonVersion)
+	pp.initRemoteVersions(pp.updateLocal, pp.remotePythons, python.InstallPythonVersion)
 
 	// set input captures
 	pp.currVersionsInstalled.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
@@ -64,7 +64,7 @@ func (pp *PythonPanel) init() {
 			text = itemText
 		}
 
-		cleanText := CleanVersionString(text)
+		cleanText := pythoncleanVersionString(text)
 
 		switch event.Key() {
 		case tcell.KeyTab:
@@ -74,9 +74,6 @@ func (pp *PythonPanel) init() {
 			App.SetFocus(AvailableLanguesSections.El)
 		case tcell.KeyRune:
 			switch event.Rune() {
-			case '?':
-				commandText.SetText(commandtext.PythonPanel)
-				commandsPages.ShowPage("Command")
 			case 'G':
 				if !strings.Contains(text, "global") && !strings.Contains(text, "system") {
 					_, err := exec.Command("pyenv", "global", cleanText).Output()
@@ -99,7 +96,9 @@ func (pp *PythonPanel) init() {
 				}
 			case 'D':
 				if !strings.Contains(text, "using") && !strings.Contains(text, "system") {
-					pp.UninstallPythonVersion(python.UnInstallPythonVersion, CleanVersionString(text), index, pp.currVersionsInstalled)
+					pp.UninstallPythonVersion(python.UnInstallPythonVersion, cleanText, index, pp.currVersionsInstalled)
+					pp.init()
+					App.SetFocus(pp.currVersionsInstalled)
 				} else {
 					setConfirmationContent("Can't remove this python version. Press enter to go back.",
 						func() {
@@ -113,6 +112,10 @@ func (pp *PythonPanel) init() {
 
 		return event
 	})
+}
+
+func (pp *PythonPanel) updateLocal() []string {
+	return markVersions(python.GetAvailPythonLocal(), strings.TrimSpace(pp.currGlobal), strings.TrimSpace(pp.currLocal))
 }
 
 func formatPythonInfo(input string) string {
@@ -185,7 +188,7 @@ func markVersions(versions []string, globalVersion string, localVersion string) 
 	return result
 }
 
-func CleanVersionString(version string) string {
+func pythoncleanVersionString(version string) string {
 	cleaned := strings.TrimSpace(version)
 	cleaned = strings.TrimPrefix(cleaned, "*")
 	re := regexp.MustCompile(`\s*\(.*\)$`)

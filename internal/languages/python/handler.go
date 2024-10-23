@@ -4,7 +4,6 @@ import (
 	"TermCraft/internal/term/commands"
 	"TermCraft/internal/utils"
 	"fmt"
-	"log"
 	"os/exec"
 	"regexp"
 	"runtime"
@@ -30,32 +29,42 @@ func GetPyenvGlobal() string {
 }
 
 func GetPythonLocal() string {
+	// Get Python version
 	pythonVersion, err := exec.Command("python", "--version").Output()
 	if err != nil {
-		log.Fatalf("Error getting Python version: %v", err)
+		// log.Printf("Error getting Python version: %v", err)
+		pythonVersion = []byte("Unknown Python version\n")
 	}
 
-	pythonBuild, err := exec.Command("python", "-c", `import platform; print(platform.python_build())`).Output()
+	// Try to get Python build info, but handle cases where it might not be available in older versions
+	pythonBuild, err := exec.Command("python", "-c", `import platform; print(getattr(platform, "python_build", lambda: "Unknown Build")())`).Output()
 	if err != nil {
-		log.Fatalf("Error getting Python build: %v", err)
+		// log.Printf("Error getting Python build: %v", err)
+		pythonBuild = []byte("Unknown Build\n")
 	}
 
-	pythonCompiler, err := exec.Command("python", "-c", `import platform; print(platform.python_compiler())`).Output()
+	// Try to get Python compiler, handle errors gracefully
+	pythonCompiler, err := exec.Command("python", "-c", `import platform; print(getattr(platform, "python_compiler", lambda: "Unknown Compiler")())`).Output()
 	if err != nil {
-		log.Fatalf("Error getting Python compiler: %v", err)
+		// log.Printf("Error getting Python compiler: %v", err)
+		pythonCompiler = []byte("Unknown Compiler\n")
 	}
 
-	pythonFullVersion, err := exec.Command("python", "-c", `import sys, platform; print(f"Version Info: {sys.version_info}\nSystem: {platform.system()}\nRelease: {platform.release()}\nProcessor: {platform.processor()}")`).Output()
+	// Get more detailed Python version info, with fallbacks if some attributes are missing
+	pythonFullVersion, err := exec.Command("python", "-c", `import sys, platform; print(f"Version Info: {sys.version_info}\nSystem: {getattr(platform, 'system', lambda: 'Unknown')()}\nRelease: {getattr(platform, 'release', lambda: 'Unknown')()}\nProcessor: {getattr(platform, 'processor', lambda: 'Unknown')()}")`).Output()
 	if err != nil {
-		pythonFullVersion = []byte{'\n', '\n', '\n', '\n'}
-		// log.Fatalf("Error getting full Python version details: %v", err)
+		// log.Printf("Error getting full Python version details: %v", err)
+		pythonFullVersion = []byte("Version Info: Unknown\nSystem: Unknown\nRelease: Unknown\nProcessor: Unknown\n")
 	}
 
+	// Get pip version
 	pipVersion, err := exec.Command("pip", "--version").Output()
 	if err != nil {
-		log.Fatalf("Error getting full pip version details: %v", err)
+		// log.Printf("Error getting pip version: %v", err)
+		pipVersion = []byte("Pip version not available\n")
 	}
 
+	// Return all gathered information as a single string
 	return string(pythonVersion) + string(pythonBuild) + string(pythonCompiler) + string(pythonFullVersion) + string(pipVersion)
 }
 
