@@ -1,7 +1,7 @@
 package languages
 
 var SupportedLanguages []string = []string{
-	// "java",
+	"java",
 	"python",
 	// "go",
 	// "node",

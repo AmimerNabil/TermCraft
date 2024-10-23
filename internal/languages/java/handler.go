@@ -25,10 +25,6 @@ func GetAllJavaVersionInformation(identifier string) JavaProperties {
 
 	_, output, _ := command.Run()
 
-	// if err != nil {
-	// 	// TODO: do something here fmt.Println(err)
-	// }
-
 	version := parseProperties(output)
 
 	return version

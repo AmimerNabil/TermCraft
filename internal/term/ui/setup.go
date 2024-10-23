@@ -112,11 +112,10 @@ func Start(app *tview.Application) {
 
 	App.SetRoot(commandsPages, true)
 
-	// Run a goroutine to wait for both jp and pp initialization to finish
 	go func() {
-		// <-jdone    // Wait for jp.Init() to finish
-		<-pdone    // Wait for pp.Init() to finish
-		app.Draw() // Redraw the application once both are done
+		<-jdone
+		<-pdone
+		app.Draw()
 	}()
 }
 
@@ -136,12 +135,24 @@ func setConfirmationContent(whatToConfirm string, ifNo func(), ifYes func()) {
 
 func initializePanels() {
 	go func() {
+		key := "java"
+		jp = NewJavaPanel()
+		lgs[key] = jp.Panel
+
+		App.QueueUpdate(func() {
+			mainContainer.AddPage(key, jp.container, true, true) // Add Python page when done
+		})
+
+		jdone <- true // Signal that Python is initialized
+	}()
+
+	go func() {
 		key := "python"
 		pp = NewPythonPanel()
 		lgs[key] = pp.Panel
 
 		App.QueueUpdate(func() {
-			mainContainer.AddPage(key, pp.container, true, true) // Add Python page when done
+			mainContainer.AddPage(key, pp.container, true, false) // Add Python page when done
 		})
 
 		pdone <- true // Signal that Python is initialized

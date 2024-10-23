@@ -27,6 +27,7 @@ var (
 
 	// synchro channels
 	pdone = make(chan bool)
+	jdone = make(chan bool)
 )
 
 var (

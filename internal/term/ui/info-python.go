@@ -2,6 +2,7 @@ package ui
 
 import (
 	"TermCraft/internal/languages/python"
+	commandtext "TermCraft/internal/term/ui/command-text"
 	"fmt"
 	"log"
 	"os/exec"
@@ -73,6 +74,9 @@ func (pp *PythonPanel) init() {
 			App.SetFocus(AvailableLanguesSections.El)
 		case tcell.KeyRune:
 			switch event.Rune() {
+			case '?':
+				commandText.SetText(commandtext.PythonPanel)
+				commandsPages.ShowPage("Command")
 			case 'G':
 				if !strings.Contains(text, "global") && !strings.Contains(text, "system") {
 					_, err := exec.Command("pyenv", "global", cleanText).Output()
