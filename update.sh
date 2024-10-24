@@ -70,12 +70,60 @@ update_executable() {
 	echo "Executable updated."
 }
 
+# Install SDKMAN if not already installed
+install_sdkman() {
+	if [ -z "$(command -v sdk)" ]; then
+		echo "Installing SDKMAN..."
+		curl -s "https://get.sdkman.io" | bash
+		source "$HOME/.sdkman/bin/sdkman-init.sh"
+		echo "SDKMAN installed."
+	else
+		echo "SDKMAN already installed."
+	fi
+}
+
+# Install pyenv using brew if not already installed
+install_pyenv() {
+	if [ -z "$(command -v pyenv)" ]; then
+		echo "Installing pyenv with Homebrew..."
+		brew install pyenv &
+		spinner
+		echo "pyenv installed."
+	else
+		echo "pyenv already installed."
+	fi
+}
+
+# Install fnm using brew if not already installed
+install_fnm() {
+	if [ -z "$(command -v fnm)" ]; then
+		echo "Installing fnm with Homebrew..."
+		brew install fnm &
+		spinner
+		echo "fnm installed."
+	else
+		echo "fnm already installed."
+	fi
+}
+
+# Check for new package installations during update
+install_new_packages() {
+	echo "Checking and installing new packages..."
+
+	install_sdkman
+	install_pyenv
+	install_fnm
+
+	echo "All new packages are installed."
+}
+
 # Main update process
 echo "Starting update process..."
 
 remove_old_executable
 fetch_latest_release
 extract_release
+install_new_packages
 build_go_project
 update_executable
 
