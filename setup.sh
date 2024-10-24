@@ -39,6 +39,18 @@ install_pyenv() {
 	fi
 }
 
+# Install fnm using brew if not already installed
+install_fnm() {
+	if [ -z "$(command -v fnm)" ]; then
+		echo "Installing fnm with Homebrew..."
+		brew install fnm &
+		spinner
+		echo "fnm installed."
+	else
+		echo "fnm already installed."
+	fi
+}
+
 # Create the .termcraft directory structure
 setup_termcraft() {
 	echo "Setting up .termcraft directory structure..."
@@ -90,6 +102,7 @@ echo "Starting installation process..."
 
 install_sdkman
 install_pyenv
+install_fnm
 setup_termcraft
 fetch_latest_release
 install_go_project
