@@ -1,64 +1,110 @@
 #!/bin/bash
 
-# Function to show spinner
-spinner() {
-	local pid=$!
-	local delay=0.1
-	local spinstr='|/-\'
-	while [ "$(ps a | awk '{print $1}' | grep $pid)" ]; do
-		local temp=${spinstr#?}
-		printf " [%c]  " "$spinstr"
-		spinstr=$temp${spinstr%"$temp"}
-		sleep $delay
-		printf "\b\b\b\b\b\b"
+# Function to show a progress bar
+show_progress() {
+	local duration=$1
+	local bar_length=50
+	local interval=0.1
+	local total_steps=$((duration / interval))
+
+	for ((i = 0; i <= total_steps; i++)); do
+		local progress=$((i * bar_length / total_steps))
+		local percent=$((i * 100 / total_steps))
+		printf "\r["
+		printf "%-${bar_length}s" "#" | tr ' ' '#'
+		printf "] %d%%" "$percent"
+		sleep "$interval"
 	done
-	printf "    \b\b\b\b"
+	printf "\r[%-${bar_length}s] 100%%\n" "#"
 }
 
-# Install SDKMAN if not already installed
+# Function to install SDKMAN if not already installed
 install_sdkman() {
 	if [ -z "$(command -v sdk)" ]; then
-		echo "Installing SDKMAN..."
-		curl -s "https://get.sdkman.io" | bash
+		echo -n "Installing SDKMAN... "
+		{
+			curl -s "https://get.sdkman.io" | bash
+		} &
+		show_progress 5 # Show progress bar for 5 seconds
 		source "$HOME/.sdkman/bin/sdkman-init.sh"
 		echo "SDKMAN installed."
+		echo "Please add the following to your profile file (e.g., ~/.bashrc or ~/.zshrc):"
+		echo 'export SDKMAN_DIR="$HOME/.sdkman"'
+		echo '[[ -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]] && source "$SDKMAN_DIR/bin/sdkman-init.sh"'
 	else
 		echo "SDKMAN already installed."
 	fi
 }
 
-# Install pyenv using brew if not already installed
+# Function to install pyenv using brew if not already installed
 install_pyenv() {
 	if [ -z "$(command -v pyenv)" ]; then
-		echo "Installing pyenv with Homebrew..."
-		brew install pyenv &
-		spinner
+		echo -n "Installing pyenv... "
+		{
+			brew install pyenv
+		} &
+		show_progress 5 # Show progress bar for 5 seconds
 		echo "pyenv installed."
+		echo "Please add the following to your profile file (e.g., ~/.bashrc or ~/.zshrc):"
+		echo 'export PATH="$HOME/.pyenv/bin:$PATH"'
+		echo 'eval "$(pyenv init --path)"'
 	else
 		echo "pyenv already installed."
 	fi
 }
 
-# Install fnm using brew if not already installed
+# Function to install fnm using brew if not already installed
 install_fnm() {
 	if [ -z "$(command -v fnm)" ]; then
-		echo "Installing fnm with Homebrew..."
-		brew install fnm &
-		spinner
+		echo -n "Installing fnm... "
+		{
+			brew install fnm
+		} &
+		show_progress 5 # Show progress bar for 5 seconds
 		echo "fnm installed."
+		echo "Please add the following to your profile file (e.g., ~/.bashrc or ~/.zshrc):"
+		echo 'eval "$(fnm env)"'
 	else
 		echo "fnm already installed."
 	fi
 }
 
-# Create the .termcraft directory structure
+# Function to verify that dependencies are working
+verify_dependencies() {
+	echo "Verifying dependencies..."
+
+	# Check SDKMAN
+	if [ -n "$(command -v sdk)" ]; then
+		echo "SDKMAN is installed."
+	else
+		echo "SDKMAN is not installed. Please install it."
+	fi
+
+	# Check pyenv
+	if [ -n "$(command -v pyenv)" ]; then
+		echo "pyenv is installed."
+	else
+		echo "pyenv is not installed. Please install it."
+	fi
+
+	# Check fnm
+	if [ -n "$(command -v fnm)" ]; then
+		echo "fnm is installed."
+	else
+		echo "fnm is not installed. Please install it."
+	fi
+
+	echo "Dependency verification complete."
+}
+
+# Function to create the .termcraft directory structure
 setup_termcraft() {
 	echo "Setting up .termcraft directory structure..."
 	mkdir -p "$HOME/.termcraft/src" "$HOME/.termcraft/configs"
 	echo ".termcraft directory structure created."
 }
 
-# Fetch the latest release tarball
+# Function to fetch the latest release tarball from GitHub
 fetch_latest_release() {
 	local repo_url="AmimerNabil/TermCraft" # Change to your repository URL
 	echo "Fetching the latest release from GitHub..."
@@ -80,32 +126,48 @@ fetch_latest_release() {
 	echo "Latest release extracted."
 }
 
-# Build the Go project from the extracted release
-install_go_project() {
+# Function to build the Go project from the extracted release
+build_go_project() {
 	echo "Building Go project..."
 	cd "$HOME/.termcraft/src" || exit 1 # Change to the extracted repo directory
 	go build -o "$HOME/.termcraft/termcraft" . &
-	spinner
+	show_progress 5 # Show progress bar for 5 seconds
 	echo "Go project built."
 }
 
-# Move executable to /usr/local/bin
-move_executable() {
-	echo "Moving executable to /usr/local/bin..."
-	sudo mv "$HOME/.termcraft/termcraft" /usr/local/bin/ &
-	spinner
-	echo "Executable moved to /usr/local/bin."
+# Function to remove old executable
+remove_old_executable() {
+	echo "Removing old termcraft files..."
+	sudo rm -rf ~/.termcraft/src/* &
+	show_progress 5 # Show progress bar for 5 seconds
+
+	echo "Removing old termcraft executable..."
+	sudo rm "$HOME/.termcraft/termcraft" &
+	show_progress 5 # Show progress bar for 5 seconds
+	echo "Old executable removed."
 }
 
-# Main installation process
-echo "Starting installation process..."
-
-install_sdkman
-install_pyenv
-install_fnm
-setup_termcraft
-fetch_latest_release
-install_go_project
-move_executable
-
-echo "Installation complete!"
+# Main process
+case "$1" in
+-U | --update)
+	echo "Starting update process..."
+	verify_dependencies # Verify dependencies before updating
+	remove_old_executable
+	fetch_latest_release
+	build_go_project
+	echo "Update complete! Please ensure that the following path is added to your PATH in your profile file (e.g., ~/.bashrc or ~/.zshrc):"
+	echo 'export PATH="$HOME/.termcraft:$PATH"'
+	;;
+*)
+	echo "Starting installation process..."
+	install_sdkman
+	install_pyenv
+	install_fnm
+	verify_dependencies # Verify dependencies during installation
+	setup_termcraft
+	fetch_latest_release
+	build_go_project
+	echo "Installation complete! Please add the following path to your PATH in your profile file (e.g., ~/.bashrc or ~/.zshrc):"
+	echo 'export PATH="$HOME/.termcraft:$PATH"'
+	;;
+esac

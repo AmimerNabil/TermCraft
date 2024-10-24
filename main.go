@@ -59,7 +59,7 @@ func runUpdateScript() error {
 	fmt.Println("Updating Termcraft...")
 
 	// Change the path to your update script if it's located elsewhere
-	cmd := exec.Command("bash", "$HOME/.termcraft/update.sh")
+	cmd := exec.Command("bash", "$HOME/.termcraft/setup.sh -U")
 
 	// Redirect output to the console
 	cmd.Stdout = os.Stdout
