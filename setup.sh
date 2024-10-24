@@ -59,6 +59,20 @@ install_fnm() {
 	fi
 }
 
+# Function to set up the .termcraft directory structure
+setup_termcraft_environment() {
+	echo "Setting up .termcraft directory structure..."
+	# Create the necessary directories
+	mkdir -p "$HOME/.termcraft/src" \
+		"$HOME/.termcraft/logs" \
+		"$HOME/.termcraft/configs"
+
+	# Optionally touch config files to ensure the environment is ready for future use
+	touch "$HOME/.termcraft/configs/settings.conf"
+
+	echo ".termcraft environment setup complete."
+}
+
 # Function to fetch the latest release tarball from GitHub
 fetch_latest_release() {
 	local repo_url="AmimerNabil/TermCraft" # Replace with your repository URL
@@ -137,6 +151,7 @@ case "$1" in
 	echo "Starting update process..."
 	verify_dependencies
 	remove_old_executable
+	setup_termcraft_environment
 	fetch_latest_release
 	build_go_project
 	echo "Update complete! Ensure the path is added to your PATH (e.g., ~/.bashrc or ~/.zshrc):"
@@ -148,6 +163,7 @@ case "$1" in
 	install_pyenv
 	install_fnm
 	verify_dependencies
+	setup_termcraft_environment
 	fetch_latest_release
 	build_go_project
 	echo "Installation complete! Add the following to your PATH (e.g., ~/.bashrc or ~/.zshrc):"
