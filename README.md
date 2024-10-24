@@ -1,6 +1,6 @@
 ## TermCraft 🧰
 
-![image](https://github.com/user-attachments/assets/621fafda-33bd-48d4-bb75-36f84530409f)
+![image](https://github.com/user-attachments/assets/5e8383b2-9dee-4c93-b59a-0ba79a0b5904)
 
 Termcraft is a powerful text-based user interface designed to simplify the management of multiple programming languages and frameworks. With Termcraft, you can easily install, manage, and view different versions of languages such as Java ☕, Python 🐍, Node 🌐, Kotlin 🎯, Go 🚀, and many more. This tool streamlines version control across your development environment, making it easy to switch between languages and frameworks as needed. In the future, Termcraft will also offer functionality to help users manage and share configuration files 🛠️, providing a comprehensive solution for developers.
 
