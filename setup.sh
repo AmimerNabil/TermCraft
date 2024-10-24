@@ -4,18 +4,15 @@
 show_progress() {
 	local duration=$1
 	local bar_length=50
-	local interval=0.1
-	local total_steps=$((duration / interval))
+	local filled_length=0
+	local increment=$((duration / bar_length))
 
-	for ((i = 0; i <= total_steps; i++)); do
-		local progress=$((i * bar_length / total_steps))
-		local percent=$((i * 100 / total_steps))
-		printf "\r["
-		printf "%-${bar_length}s" "#" | tr ' ' '#'
-		printf "] %d%%" "$percent"
-		sleep "$interval"
+	for ((i = 0; i <= bar_length; i++)); do
+		filled_length=$((i * bar_length / bar_length))
+		printf "\r[%-${bar_length}s] %d%%" $(head -c $filled_length </dev/zero | tr '\0' '#') $((i * 100 / bar_length))
+		sleep "$increment"
 	done
-	printf "\r[%-${bar_length}s] 100%%\n" "#"
+	echo ""
 }
 
 # Function to install SDKMAN if not already installed
