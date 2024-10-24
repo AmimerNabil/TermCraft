@@ -4,7 +4,7 @@ var SupportedLanguages []string = []string{
 	"java",
 	"python",
 	// "go",
-	// "node",
+	"node",
 	// "rust",
 	// "c/c++",
 	// "kotlin",

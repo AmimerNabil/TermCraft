@@ -115,6 +115,7 @@ func Start(app *tview.Application) {
 	go func() {
 		<-jdone
 		<-pdone
+		<-ndone
 		app.Draw()
 	}()
 }
@@ -156,5 +157,17 @@ func initializePanels() {
 		})
 
 		pdone <- true // Signal that Python is initialized
+	}()
+
+	go func() {
+		key := "node"
+		np = NewFNMPanel()
+		lgs[key] = np.Panel
+
+		App.QueueUpdate(func() {
+			mainContainer.AddPage(key, np.container, true, false) // Add Python page when done
+		})
+
+		ndone <- true // Signal that Python is initialized
 	}()
 }

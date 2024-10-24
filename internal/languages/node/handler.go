@@ -3,27 +3,22 @@ package node
 import (
 	"bufio"
 	"fmt"
+	"os"
 	"os/exec"
 	"regexp"
 	"strings"
 )
 
-// ExecuteCommand executes the given command and returns the output as a string
 func ExecuteCommand(command []string) (string, error) {
 	cmd := exec.Command(command[0], command[1:]...)
 	output, err := cmd.CombinedOutput()
 	return string(output), err
 }
 
-// GetVerboseNodeInfo returns detailed Node.js information formatted for tview
 func GetVerboseNodeInfo() string {
 	var result strings.Builder
 
-	// Title
-	result.WriteString("[yellow]Node.js Detailed Information\n\n")
-
-	// Get Node.js version
-	nodeVersionCmd := []string{"node", "--version"}
+	nodeVersionCmd := []string{"fnm", "current"}
 	nodeVersion, err := ExecuteCommand(nodeVersionCmd)
 	if err != nil {
 		result.WriteString(fmt.Sprintf("[red]Error retrieving Node.js version: %s\n", err.Error()))
@@ -31,69 +26,63 @@ func GetVerboseNodeInfo() string {
 		result.WriteString(fmt.Sprintf("[green]Node.js Version: %s\n", strings.TrimSpace(nodeVersion)))
 	}
 
-	// Get NPM version
 	npmVersionCmd := []string{"npm", "--version"}
 	npmVersion, err := ExecuteCommand(npmVersionCmd)
 	if err != nil {
 		result.WriteString(fmt.Sprintf("[red]Error retrieving NPM version: %s\n", err.Error()))
 	} else {
-		result.WriteString(fmt.Sprintf("[green]NPM Version: %s\n", strings.TrimSpace(npmVersion)))
+		result.WriteString(fmt.Sprintf("[green]NPM Version: %s", strings.TrimSpace(npmVersion)))
 	}
 
-	// Get NPM configuration
 	npmConfigCmd := []string{"npm", "config", "list"}
 	npmConfig, err := ExecuteCommand(npmConfigCmd)
 	if err != nil {
 		result.WriteString(fmt.Sprintf("[red]Error retrieving NPM config: %s\n", err.Error()))
 	} else {
-		result.WriteString("\n[white]NPM Configuration:\n")
-		result.WriteString(strings.TrimSpace(npmConfig) + "\n")
-	}
+		result.WriteString("\n[lightyellow]NPM Configuration:[white]\n")
 
-	// Get Node.js environment variables
-	envVarsCmd := []string{"node", "-p", "JSON.stringify(process.env, null, 2)"}
-	envVars, err := ExecuteCommand(envVarsCmd)
-	if err != nil {
-		result.WriteString(fmt.Sprintf("[red]Error retrieving Node.js environment variables: %s\n", err.Error()))
-	} else {
-		result.WriteString("\n[white]Node.js Environment Variables:\n")
-		result.WriteString(strings.TrimSpace(envVars) + "\n")
+		lines := strings.Split(npmConfig, "\n")
+
+		for _, line := range lines {
+			parts := strings.SplitN(line, "=", 2)
+
+			if len(parts) == 2 {
+				title := strings.TrimSpace(parts[0]) // Things before "="
+				value := strings.TrimSpace(parts[1]) // Things after "="
+
+				result.WriteString(fmt.Sprintf("[blue]%s [white]= %s\n", title, value))
+			}
+		}
+		result.WriteString("\n")
 	}
 
 	return result.String()
 }
 
-// GetRemoteNodeVersions fetches and organizes Node.js remote versions as map[major][minor]
-func GetRemoteNodeVersions() (map[string]map[string]string, error) {
-	// Run the nvm ls-remote command to fetch available Node.js versions
-	output, err := ExecuteCommand(OSnvmListNodeVersions)
+func GetRemoteNodeVersions() (map[string]map[string][]string, error) {
+	output, err := ExecuteCommand([]string{"fnm", "ls-remote"})
 	if err != nil {
 		return nil, fmt.Errorf("error retrieving remote Node.js versions: %v", err)
 	}
 
-	// Prepare a regular expression to match version strings like "v16.17.0"
 	versionRegex := regexp.MustCompile(`v(\d+)\.(\d+)\.(\d+)`)
-	versions := make(map[string]map[string]string)
+	versions := make(map[string]map[string][]string)
 
-	// Use a scanner to go through the command output line by line
 	scanner := bufio.NewScanner(strings.NewReader(output))
 	for scanner.Scan() {
 		line := scanner.Text()
 
-		// Find a match using the regex
 		match := versionRegex.FindStringSubmatch(line)
 		if len(match) == 4 {
 			major := match[1]       // Major version
 			minor := match[2]       // Minor version
 			fullVersion := match[0] // Full version (e.g., v16.17.0)
 
-			// Initialize the map for the major version if it doesn't exist
 			if _, exists := versions[major]; !exists {
-				versions[major] = make(map[string]string)
+				versions[major] = make(map[string][]string)
 			}
 
-			// Add the minor version to the map
-			versions[major][minor] = fullVersion
+			versions[major][minor] = append(versions[major][minor], fullVersion)
 		}
 	}
 
@@ -104,48 +93,85 @@ func GetRemoteNodeVersions() (map[string]map[string]string, error) {
 	return versions, nil
 }
 
-// InstallNodeVersion installs a specific version of Node.js using nvm
-func InstallNodeVersion(version string) error {
-	cmd := OSnvmInstallNode(version)
-	_, err := ExecuteCommand(cmd["darwin"]) // Adjust this if needed for Linux
-	return err
+func InstallNodeVersion(version string) (string, string, error) {
+	cmd := []string{"fnm", "install", version}
+	output, err := ExecuteCommand(cmd)
+	return output, "", err
 }
 
-// UninstallNodeVersion uninstalls a specific version of Node.js using nvm
-func UninstallNodeVersion(version string) error {
-	cmd := OSnvmUninstallNode(version)
-	_, err := ExecuteCommand(cmd["darwin"]) // Adjust this if needed for Linux
-	return err
+func UninstallNodeVersion(version string) (string, string, error) {
+	cmd := []string{"fnm", "uninstall", version}
+	output, err := ExecuteCommand(cmd)
+	return output, "", err
 }
 
-// SetNodeVersion sets a specific Node.js version as the current version using nvm
+// Set the global Node.js version for all directories using `fnm default`
 func SetNodeVersion(version string) error {
-	cmd := OSnvmSetNode(version)
-	_, err := ExecuteCommand(cmd["darwin"]) // Adjust this if needed for Linux
+	cmd := []string{"fnm", "use", version}      // Changed from 'use' to 'default'
+	cmd2 := []string{"fnm", "default", version} // Changed from 'use' to 'default'
+
+	_, err := ExecuteCommand(cmd)
+	ExecuteCommand(cmd2)
+
 	return err
 }
 
-func ListInstalledNodeVersions() (map[string]string, string, error) {
-	output, err := ExecuteCommand([]string{"bash", "-c", "source $HOME/.nvm/nvm.sh && nvm ls"})
+// Set the local Node.js version for a specific directory by creating/modifying a .node-version file
+func SetLocalNodeVersion(version string) error {
+	// Check if .node-version file exists
+	fileName := ".node-version"
+	file, err := os.OpenFile(fileName, os.O_RDWR|os.O_CREATE, 0644)
+	if err != nil {
+		return fmt.Errorf("error opening or creating .node-version file: %v", err)
+	}
+	defer file.Close()
+
+	// Write the version to the file, overwriting existing content
+	_, err = file.WriteString(version + "\n")
+	if err != nil {
+		return fmt.Errorf("error writing version to .node-version file: %v", err)
+	}
+
+	fmt.Printf("Local Node.js version set to %s in .node-version file.\n", version)
+	return nil
+}
+
+// List installed Node.js versions and identify the current one based on `node -v`
+func ListInstalledNodeVersions() ([]string, string, error) {
+	output, err := ExecuteCommand([]string{"fnm", "ls"})
 	if err != nil {
 		return nil, "", fmt.Errorf("error retrieving installed Node.js versions: %v", err)
 	}
 
-	installedVersions := make(map[string]string)
-	var currentVersion string
-	versionRegex := regexp.MustCompile(`->\s*(v\d+\.\d+\.\d+)`) // Regex to find currently active version
+	// Get the currently active version via `node -v`
+	currentNodeVersion, err := GetCurrentNodeVersion()
+	if err != nil {
+		return nil, "", err
+	}
+
+	var installedVersions []string
+	versionRegex := regexp.MustCompile(`v\d+\.\d+\.\d+`) // Regex to find version numbers
 
 	scanner := bufio.NewScanner(strings.NewReader(output))
 	for scanner.Scan() {
-		line := scanner.Text()
-		if strings.HasPrefix(line, "v") { // Only process lines that start with 'v'
-			version := strings.Fields(line)[0]
-			installedVersions[version] = version
+		line := strings.TrimSpace(scanner.Text())
 
-			// Check if the line indicates the currently active version
-			if versionRegex.MatchString(line) {
-				currentVersion = versionRegex.FindStringSubmatch(line)[1] // Get the version from regex match
+		// Match Node.js version numbers in the list
+		if versionRegex.MatchString(line) {
+			version := versionRegex.FindString(line)
+			versionEntry := version
+
+			// Check if the version is the current version
+			if version == currentNodeVersion {
+				versionEntry += " -> using"
 			}
+
+			// Check if the version is the default version
+			if strings.Contains(line, "default") {
+				versionEntry += " (default)"
+			}
+
+			installedVersions = append(installedVersions, versionEntry)
 		}
 	}
 
@@ -153,12 +179,11 @@ func ListInstalledNodeVersions() (map[string]string, string, error) {
 		return nil, "", fmt.Errorf("error scanning installed Node.js versions: %v", err)
 	}
 
-	return installedVersions, currentVersion, nil
+	return installedVersions, currentNodeVersion, nil
 }
 
-// GetCurrentNodeVersion retrieves the currently active Node.js version using nvm
 func GetCurrentNodeVersion() (string, error) {
-	output, err := ExecuteCommand([]string{"bash", "-c", "source $HOME/.nvm/nvm.sh && nvm current"})
+	output, err := ExecuteCommand([]string{"fnm", "current"})
 	if err != nil {
 		return "", fmt.Errorf("error retrieving current Node.js version: %v", err)
 	}

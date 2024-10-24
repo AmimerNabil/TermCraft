@@ -21,6 +21,7 @@ var (
 	// language specific
 	jp *JavaPanel
 	pp *PythonPanel
+	np *FNMPanel
 
 	// mapping
 	lgs map[string]*Panel
@@ -28,6 +29,7 @@ var (
 	// synchro channels
 	pdone = make(chan bool)
 	jdone = make(chan bool)
+	ndone = make(chan bool)
 )
 
 var (

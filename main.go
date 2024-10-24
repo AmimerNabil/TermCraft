@@ -17,8 +17,8 @@ import (
 var App tview.Application
 
 func main() {
-	demo()
-	// termcraft()
+	// demo()
+	termcraft()
 }
 
 func demo() {

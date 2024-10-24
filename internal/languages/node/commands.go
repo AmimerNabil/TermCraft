@@ -80,17 +80,13 @@ var nvmSetNode = func(identifier string) map[string][]string {
 	return map[string][]string{
 		"darwin": {
 			"bash", "-c", fmt.Sprintf(`
-				source "$HOME/.nvm/nvm.sh"
-				nvm use %s
-				nvm alias default %s
-			`, identifier, identifier),
+				fnm default %s
+			`, identifier),
 		},
 		"linux": {
 			"bash", "-c", fmt.Sprintf(`
-				source "$HOME/.nvm/nvm.sh"
-				nvm use %s
-				nvm alias default %s
-			`, identifier, identifier),
+				fnm default %s
+			`, identifier),
 		},
 	}
 }
