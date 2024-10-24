@@ -1,6 +1,6 @@
 ## TermCraft 🧰
 
-![image](https://github.com/user-attachments/assets/621fafda-33bd-48d4-bb75-36f84530409f)
+![image](https://github.com/user-attachments/assets/5e8383b2-9dee-4c93-b59a-0ba79a0b5904)
 
 Termcraft is a powerful text-based user interface designed to simplify the management of multiple programming languages and frameworks. With Termcraft, you can easily install, manage, and view different versions of languages such as Java ☕, Python 🐍, Node 🌐, Kotlin 🎯, Go 🚀, and many more. This tool streamlines version control across your development environment, making it easy to switch between languages and frameworks as needed. In the future, Termcraft will also offer functionality to help users manage and share configuration files 🛠️, providing a comprehensive solution for developers.
 
@@ -15,14 +15,15 @@ Termcraft is a powerful text-based user interface designed to simplify the manag
 
 ## Table of Contents
 
-1. [TermCraft 🧰](#termcraft-)  
+1. [TermCraft 🧰](#termcraft-)
 2. [Installation](#installation)  
-   2.1. [Prerequisites](#prerequisites)  
-      2.1.1. [1. Install Homebrew](#1-install-homebrew)  
-      2.1.2. [2. Install Go (v1.19 or higher)](#2-install-go-v119-or-higher)  
-   2.2. [Proceed with the Installation](#proceed-with-the-installation)  
-   2.3. [Additional Notes](#additional-notes)  
-3. [How to Use 🚀](#how-to-use-)  
+   - 2.1. [Prerequisites](#prerequisites)  
+     - 2.1.1. [Install Homebrew](#1-install-homebrew)  
+     - 2.1.2. [Install Go (v1.19 or higher)](#2-install-go-v119-or-higher)  
+   - 2.2. [Proceed with the Installation](#proceed-with-the-installation)  
+   - 2.3. [Add to Profile Files](#things-to-add-to-you-profiles)  
+   - 2.4. [Additional Notes](#additional-notes)  
+4. [How to Use 🚀](#how-to-use-)
 
 ## Installation
 
@@ -63,13 +64,20 @@ After completing the prerequisites, you can run the setup script to install and 
 ```bash
 bash <(curl -s https://raw.githubusercontent.com/AmimerNabil/TermCraft/main/setup.sh)
 ```
+### Things to add to you profiles
 
 Add the following to your curr profile like `~/.zshrc` or `~/.bashrc` but make sure to always keep **SDKman at the very bottom of your profile**
 
+#### for pyenv
 ```bash
 export PYENV_ROOT="$HOME/.pyenv"
 [[ -d $PYENV_ROOT/bin ]] && export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init -)"
+```
+
+#### for fnm
+```bash
+eval "$(fnm env --use-on-cd --shell zsh)"
 ```
 
 ### Additional Notes
