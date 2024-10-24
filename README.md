@@ -8,11 +8,12 @@ Termcraft is a powerful text-based user interface designed to simplify the manag
 #### Available Languages for now:
 1. java
 2. python
+3. (node versions)
+
 
 #### Languages next:
 1. go
-2. (node versions)
-
+   
 ## Table of Contents
 
 1. [TermCraft 🧰](#termcraft-)
